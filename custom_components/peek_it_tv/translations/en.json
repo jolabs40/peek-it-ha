@@ -1,0 +1,48 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Ajouter peek-it TV",
+        "data": {
+          "ip_address": "Adresse IP",
+          "port": "Port",
+          "name": "Nom"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Impossible de se connecter à la Box TV"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options peek-it TV",
+        "menu_options": {
+          "settings": "Paramètres",
+          "templates": "Templates",
+          "designer": "Designer"
+        }
+      },
+      "settings": {
+        "title": "Paramètres",
+        "data": {
+          "ip_address": "Adresse IP",
+          "port": "Port",
+          "name": "Nom"
+        }
+      },
+      "templates": {
+        "title": "Templates disponibles",
+        "description": "{templates_info}"
+      },
+      "designer": {
+        "title": "Designer",
+        "description": "[Ouvrir le Designer dans un nouvel onglet]({designer_url})"
+      }
+    },
+    "error": {
+      "cannot_connect": "Impossible de se connecter à la Box TV"
+    }
+  }
+}

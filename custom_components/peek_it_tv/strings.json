@@ -12,7 +12,8 @@
       }
     },
     "error": {
-      "cannot_connect": "Impossible de se connecter à la Box TV"
+      "cannot_connect": "Impossible de se connecter \u00e0 la Box TV",
+      "auth_required": "Box TV connect\u00e9e mais cl\u00e9 API manquante ou invalide"
     }
   },
   "options": {
@@ -44,7 +45,8 @@
       }
     },
     "error": {
-      "cannot_connect": "Impossible de se connecter à la Box TV"
+      "cannot_connect": "Impossible de se connecter \u00e0 la Box TV",
+      "auth_required": "Box TV connect\u00e9e mais cl\u00e9 API manquante ou invalide"
     }
   }
 }

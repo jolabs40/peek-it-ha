@@ -22,14 +22,16 @@ class PeekItConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             ip = user_input[CONF_IP_ADDRESS]
             port = user_input.get(CONF_PORT, DEFAULT_PORT)
             api_key = user_input.get(CONF_API_KEY, "")
-            valid = await _test_connection(ip, port, api_key)
-            if valid:
+            result = await _test_connection(ip, port, api_key)
+            if result == "ok":
                 name = user_input.get(CONF_NAME, "Android TV")
                 await _send_welcome_notification(ip, port, api_key, name)
                 return self.async_create_entry(
                     title=name,
                     data=user_input
                 )
+            elif result == "auth_required":
+                errors["base"] = "auth_required"
             else:
                 errors["base"] = "cannot_connect"
 
@@ -73,8 +75,8 @@ class PeekItOptionsFlow(config_entries.OptionsFlow):
             ip = user_input[CONF_IP_ADDRESS]
             port = user_input.get(CONF_PORT, DEFAULT_PORT)
             api_key = user_input.get(CONF_API_KEY, "")
-            valid = await _test_connection(ip, port, api_key)
-            if valid:
+            result = await _test_connection(ip, port, api_key)
+            if result == "ok":
                 name = user_input.get(CONF_NAME, "TV Salon")
                 await _send_welcome_notification(ip, port, api_key, name)
                 self.hass.config_entries.async_update_entry(
@@ -82,6 +84,8 @@ class PeekItOptionsFlow(config_entries.OptionsFlow):
                 )
                 await self.hass.config_entries.async_reload(self._entry.entry_id)
                 return self.async_create_entry(data={})
+            elif result == "auth_required":
+                errors["base"] = "auth_required"
             else:
                 errors["base"] = "cannot_connect"
 
@@ -197,15 +201,21 @@ class PeekItOptionsFlow(config_entries.OptionsFlow):
 
 
 async def _test_connection(ip, port, api_key=""):
-    """Vérifie si l'app répond sur le port configuré."""
+    """Vérifie si l'app répond sur le port configuré.
+    Retourne: 'ok', 'auth_required' ou 'failed'.
+    """
     url = f"http://{ip}:{port}/api/status"
     headers = {"X-API-Key": api_key} if api_key else {}
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(url, headers=headers, timeout=aiohttp.ClientTimeout(total=3)) as response:
-                return response.status == 200
+                if response.status == 200:
+                    return "ok"
+                elif response.status in (401, 403):
+                    return "auth_required"
+                return "failed"
     except Exception:
-        return False
+        return "failed"
 
 
 async def _send_welcome_notification(ip, port, api_key="", name="TV"):

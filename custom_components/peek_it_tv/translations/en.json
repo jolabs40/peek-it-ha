@@ -2,11 +2,12 @@
   "config": {
     "step": {
       "user": {
-        "title": "Ajouter peek-it TV",
+        "title": "Add peek-it TV",
         "data": {
-          "ip_address": "Adresse IP",
+          "ip_address": "IP Address",
           "port": "Port",
-          "name": "Nom"
+          "name": "Name",
+          "api_key": "API Key (optional)"
         }
       }
     },
@@ -25,11 +26,12 @@
         }
       },
       "settings": {
-        "title": "Paramètres",
+        "title": "Settings",
         "data": {
-          "ip_address": "Adresse IP",
+          "ip_address": "IP Address",
           "port": "Port",
-          "name": "Nom"
+          "name": "Name",
+          "api_key": "API Key (optional)"
         }
       },
       "templates": {

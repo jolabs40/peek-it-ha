@@ -7,21 +7,23 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN, DEFAULT_PORT, CONF_IP_ADDRESS, CONF_NAME, CONF_PORT
+from .const import DOMAIN, DEFAULT_PORT, CONF_IP_ADDRESS, CONF_NAME, CONF_PORT, CONF_API_KEY
 
 _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
     data = hass.data[DOMAIN][entry.entry_id]
     port = data.get(CONF_PORT, DEFAULT_PORT)
-    async_add_entities([PeekItNotificationEntity(hass, data[CONF_NAME], data[CONF_IP_ADDRESS], port)])
+    api_key = data.get(CONF_API_KEY, "")
+    async_add_entities([PeekItNotificationEntity(hass, data[CONF_NAME], data[CONF_IP_ADDRESS], port, api_key)])
 
 class PeekItNotificationEntity(NotifyEntity):
-    def __init__(self, hass, name, ip, port=DEFAULT_PORT):
+    def __init__(self, hass, name, ip, port=DEFAULT_PORT, api_key=""):
         self.hass = hass
         self._name = name
         self._ip = ip
         self._port = port
+        self._api_key = api_key
         self._url = f"http://{ip}:{port}/api/notify"
         self._attr_unique_id = f"peek_it_sender_{ip}"
         self._attr_name = name
@@ -95,9 +97,10 @@ class PeekItNotificationEntity(NotifyEntity):
                     }))
 
         # 4. Envoi
+        headers = {"X-API-Key": self._api_key} if self._api_key else {}
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.post(self._url, json=payload, timeout=5) as response:
+                async with session.post(self._url, json=payload, headers=headers, timeout=5) as response:
                     if response.status != 200:
                         err_text = await response.text()
                         _LOGGER.error(f"Erreur Box TV ({response.status}): {err_text}")

@@ -5,7 +5,7 @@ from aiohttp.web import Request, Response
 from homeassistant.components import webhook, network
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse
-from .const import DOMAIN, WEBHOOK_ID, DEFAULT_PORT, CONF_IP_ADDRESS, CONF_NAME, CONF_PORT
+from .const import DOMAIN, WEBHOOK_ID, DEFAULT_PORT, CONF_IP_ADDRESS, CONF_NAME, CONF_PORT, CONF_API_KEY
 
 PLATFORMS = ["binary_sensor", "notify"]
 
@@ -65,7 +65,9 @@ async def async_notify(call: ServiceCall) -> None:
         name = entry_data.get(CONF_NAME, "Box")
         ip = entry_data.get(CONF_IP_ADDRESS)
         port = entry_data.get(CONF_PORT, DEFAULT_PORT)
+        api_key = entry_data.get(CONF_API_KEY, "")
         url = f"http://{ip}:{port}/api/notify"
+        headers = {"X-API-Key": api_key} if api_key else {}
 
         # Récupération de l'IP locale de HA pour le retour de logs
         try:
@@ -120,7 +122,7 @@ async def async_notify(call: ServiceCall) -> None:
         # Envoi
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.post(url, json=payload, timeout=5) as response:
+                async with session.post(url, json=payload, headers=headers, timeout=5) as response:
                     if response.status != 200:
                         err_text = await response.text()
                         _LOGGER.error(f"Erreur Box TV {name} ({response.status}): {err_text}")
@@ -139,11 +141,13 @@ async def async_get_templates(call: ServiceCall) -> dict:
         name = entry_data.get(CONF_NAME, "Box")
         ip = entry_data.get(CONF_IP_ADDRESS)
         port = entry_data.get(CONF_PORT, DEFAULT_PORT)
+        api_key = entry_data.get(CONF_API_KEY, "")
         url = f"http://{ip}:{port}/api/templates/list"
+        headers = {"X-API-Key": api_key} if api_key else {}
 
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get(url, timeout=5) as response:
+                async with session.get(url, headers=headers, timeout=5) as response:
                     if response.status == 200:
                         result[name] = await response.json()
                     else:

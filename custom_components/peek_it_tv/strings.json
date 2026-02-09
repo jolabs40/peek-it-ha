@@ -6,7 +6,8 @@
         "data": {
           "ip_address": "Adresse IP",
           "port": "Port",
-          "name": "Nom"
+          "name": "Nom",
+          "api_key": "Cl\u00e9 API (optionnel)"
         }
       }
     },
@@ -29,7 +30,8 @@
         "data": {
           "ip_address": "Adresse IP",
           "port": "Port",
-          "name": "Nom"
+          "name": "Nom",
+          "api_key": "Cl\u00e9 API (optionnel)"
         }
       },
       "templates": {

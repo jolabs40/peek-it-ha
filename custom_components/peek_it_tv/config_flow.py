@@ -203,16 +203,22 @@ class PeekItOptionsFlow(config_entries.OptionsFlow):
 async def _test_connection(ip, port, api_key=""):
     """Vérifie si l'app répond sur le port configuré.
     Retourne: 'ok', 'auth_required' ou 'failed'.
+    Lit api_key_required et api_key_valid depuis /api/status.
     """
     url = f"http://{ip}:{port}/api/status"
     headers = {"X-API-Key": api_key} if api_key else {}
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(url, headers=headers, timeout=aiohttp.ClientTimeout(total=3)) as response:
-                if response.status == 200:
-                    return "ok"
-                elif response.status in (401, 403):
+                if response.status in (401, 403):
                     return "auth_required"
+                if response.status == 200:
+                    data = await response.json()
+                    key_required = data.get("api_key_required", False)
+                    key_valid = data.get("api_key_valid", True)
+                    if key_required and not key_valid:
+                        return "auth_required"
+                    return "ok"
                 return "failed"
     except Exception:
         return "failed"

@@ -4,7 +4,6 @@ import aiohttp
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
-from homeassistant.components.zeroconf import ZeroconfServiceInfo
 from .const import DOMAIN, CONF_IP_ADDRESS, CONF_NAME, CONF_PORT, CONF_API_KEY, DEFAULT_PORT
 
 _LOGGER = logging.getLogger(__name__)
@@ -15,13 +14,7 @@ class PeekItConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
-    def __init__(self):
-        """Initialisation."""
-        self._discovered_ip = None
-        self._discovered_port = DEFAULT_PORT
-        self._discovered_name = "peek-it TV"
-
-    async def async_step_zeroconf(self, discovery_info: ZeroconfServiceInfo):
+    async def async_step_zeroconf(self, discovery_info):
         """Appareil détecté automatiquement via zeroconf/NSD."""
         host = str(discovery_info.host)
         port = discovery_info.port or DEFAULT_PORT

@@ -32,7 +32,7 @@
 
 ## Why peek-it TV?
 
-Your NVIDIA Shield, Chromecast with Google TV, Xiaomi Mi Box, or any Android TV device is plugged into your TV 24/7. Why not put it to work?
+Your Android TV device (NVIDIA Shield, Chromecast with Google TV, Xiaomi Mi Box, etc.) is plugged into your TV 24/7. Why not put it to work?
 
 **peek-it TV** displays **rich overlay notifications** on top of any running application. Watching Netflix? A camera feed pops up for 5 seconds in the top-right corner. Sports night? The score updates in real time. Doorbell rings? The front door camera appears instantly.
 

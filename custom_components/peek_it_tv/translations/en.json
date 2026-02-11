@@ -9,11 +9,30 @@
           "name": "Name",
           "api_key": "API Key (optional)"
         }
+      },
+      "zeroconf_confirm": {
+        "title": "peek-it TV discovered",
+        "description": "A peek-it TV device was found at {host}:{port}",
+        "data": {
+          "name": "Name"
+        }
+      },
+      "zeroconf_confirm_auth": {
+        "title": "peek-it TV discovered (API key required)",
+        "description": "A peek-it TV device was found at {host}:{port}. An API key is required.",
+        "data": {
+          "name": "Name",
+          "api_key": "API Key"
+        }
       }
     },
     "error": {
-      "cannot_connect": "Cannot connect to the TV Box",
-      "auth_required": "TV Box connected but API key is missing or invalid"
+      "cannot_connect": "Cannot connect to the Android TV",
+      "auth_required": "Android TV connected but API key is missing or invalid"
+    },
+    "abort": {
+      "already_configured": "This device is already configured",
+      "cannot_connect": "Cannot connect to the device"
     }
   },
   "options": {

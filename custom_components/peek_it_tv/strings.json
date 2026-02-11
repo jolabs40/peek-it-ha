@@ -9,11 +9,30 @@
           "name": "Nom",
           "api_key": "Cl\u00e9 API (optionnel)"
         }
+      },
+      "zeroconf_confirm": {
+        "title": "peek-it TV d\u00e9tect\u00e9",
+        "description": "Un appareil peek-it TV a \u00e9t\u00e9 d\u00e9tect\u00e9 \u00e0 {host}:{port}",
+        "data": {
+          "name": "Nom"
+        }
+      },
+      "zeroconf_confirm_auth": {
+        "title": "peek-it TV d\u00e9tect\u00e9 (cl\u00e9 API requise)",
+        "description": "Un appareil peek-it TV a \u00e9t\u00e9 d\u00e9tect\u00e9 \u00e0 {host}:{port}. Une cl\u00e9 API est n\u00e9cessaire.",
+        "data": {
+          "name": "Nom",
+          "api_key": "Cl\u00e9 API"
+        }
       }
     },
     "error": {
-      "cannot_connect": "Impossible de se connecter \u00e0 la Box TV",
-      "auth_required": "Box TV connect\u00e9e mais cl\u00e9 API manquante ou invalide"
+      "cannot_connect": "Impossible de se connecter \u00e0 l'Android TV",
+      "auth_required": "Android TV connect\u00e9e mais cl\u00e9 API manquante ou invalide"
+    },
+    "abort": {
+      "already_configured": "Cet appareil est d\u00e9j\u00e0 configur\u00e9",
+      "cannot_connect": "Impossible de se connecter \u00e0 l'appareil"
     }
   },
   "options": {

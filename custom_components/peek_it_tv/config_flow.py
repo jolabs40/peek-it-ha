@@ -4,6 +4,7 @@ import aiohttp
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
+from homeassistant.components.zeroconf import ZeroconfServiceInfo
 from .const import DOMAIN, CONF_IP_ADDRESS, CONF_NAME, CONF_PORT, CONF_API_KEY, DEFAULT_PORT
 
 _LOGGER = logging.getLogger(__name__)
@@ -13,6 +14,99 @@ class PeekItConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Gère le flux de configuration."""
 
     VERSION = 1
+
+    def __init__(self):
+        """Initialisation."""
+        self._discovered_ip = None
+        self._discovered_port = DEFAULT_PORT
+        self._discovered_name = "peek-it TV"
+
+    async def async_step_zeroconf(self, discovery_info: ZeroconfServiceInfo):
+        """Appareil détecté automatiquement via zeroconf/NSD."""
+        host = str(discovery_info.host)
+        port = discovery_info.port or DEFAULT_PORT
+        name = discovery_info.name.split(".")[0]
+
+        # Éviter les doublons
+        self._async_abort_entries_match({CONF_IP_ADDRESS: host})
+
+        # Tester la connexion
+        result = await _test_connection(host, port)
+
+        self._discovered_ip = host
+        self._discovered_port = port
+        self._discovered_name = name
+
+        self.context["title_placeholders"] = {"name": name, "host": host}
+
+        if result == "auth_required":
+            return await self.async_step_zeroconf_confirm_auth()
+        elif result == "ok":
+            return await self.async_step_zeroconf_confirm()
+        else:
+            return self.async_abort(reason="cannot_connect")
+
+    async def async_step_zeroconf_confirm(self, user_input=None):
+        """Confirmation après découverte automatique."""
+        if user_input is not None:
+            name = user_input.get(CONF_NAME, self._discovered_name)
+            data = {
+                CONF_IP_ADDRESS: self._discovered_ip,
+                CONF_PORT: self._discovered_port,
+                CONF_NAME: name,
+                CONF_API_KEY: "",
+            }
+            await _send_welcome_notification(
+                self._discovered_ip, self._discovered_port, "", name
+            )
+            return self.async_create_entry(title=name, data=data)
+
+        return self.async_show_form(
+            step_id="zeroconf_confirm",
+            data_schema=vol.Schema({
+                vol.Optional(CONF_NAME, default=self._discovered_name): str,
+            }),
+            description_placeholders={
+                "host": self._discovered_ip,
+                "port": str(self._discovered_port),
+            },
+        )
+
+    async def async_step_zeroconf_confirm_auth(self, user_input=None):
+        """Confirmation avec clé API requise."""
+        errors = {}
+        if user_input is not None:
+            api_key = user_input.get(CONF_API_KEY, "")
+            result = await _test_connection(
+                self._discovered_ip, self._discovered_port, api_key
+            )
+            if result == "ok":
+                name = user_input.get(CONF_NAME, self._discovered_name)
+                data = {
+                    CONF_IP_ADDRESS: self._discovered_ip,
+                    CONF_PORT: self._discovered_port,
+                    CONF_NAME: name,
+                    CONF_API_KEY: api_key,
+                }
+                await _send_welcome_notification(
+                    self._discovered_ip, self._discovered_port, api_key, name
+                )
+                return self.async_create_entry(title=name, data=data)
+            else:
+                errors["base"] = "auth_required"
+
+        return self.async_show_form(
+            step_id="zeroconf_confirm_auth",
+            data_schema=vol.Schema({
+                vol.Optional(CONF_NAME, default=self._discovered_name): str,
+                vol.Required(CONF_API_KEY): str,
+            }),
+            description_placeholders={
+                "host": self._discovered_ip,
+                "port": str(self._discovered_port),
+            },
+            errors=errors,
+        )
 
     async def async_step_user(self, user_input=None):
         """Gestion de l'étape initiale (saisie IP + port + API key)."""

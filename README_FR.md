@@ -23,7 +23,7 @@
 
 ## Pourquoi peek-it TV ?
 
-Votre NVIDIA Shield, Chromecast, Xiaomi Mi Box ou tout autre appareil Android TV est branche 24h/24 sur votre TV. Et si on en profitait ?
+Votre appareil Android TV (NVIDIA Shield, Chromecast, Xiaomi Mi Box, etc.) est branche 24h/24 sur votre TV. Et si on en profitait ?
 
 **peek-it TV** affiche des **notifications riches en overlay** par-dessus n'importe quelle application. Netflix en cours ? Un flux camera s'affiche 5 secondes en haut a droite. Match de foot ? Le score s'actualise en temps reel. Le facteur sonne ? La camera du portail s'affiche instantanement.
 

@@ -81,6 +81,23 @@
       },
       "disable_overlay": {
         "name": "D\u00e9sactiver Overlay"
+      },
+      "enable_accessibility": {
+        "name": "Activer Accessibilit\u00e9"
+      },
+      "disable_accessibility": {
+        "name": "D\u00e9sactiver Accessibilit\u00e9"
+      }
+    },
+    "binary_sensor": {
+      "permission_overlay": {
+        "name": "Permission Overlay"
+      },
+      "permission_accessibility": {
+        "name": "Permission Accessibilit\u00e9"
+      },
+      "permission_microphone": {
+        "name": "Permission Microphone"
       }
     }
   }

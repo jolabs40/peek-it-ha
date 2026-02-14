@@ -10,7 +10,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import CONF_IP_ADDRESS, CONF_NAME, PEEKIT_PACKAGE, ADB_PORT
+from .const import CONF_IP_ADDRESS, CONF_NAME, PEEKIT_PACKAGE, PEEKIT_ACCESSIBILITY_COMPONENT, ADB_PORT
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -31,6 +31,8 @@ async def async_setup_entry(
         PeekItDisableAssistButton(hass, ip, name, entry.entry_id),
         PeekItEnableOverlayButton(hass, ip, name, entry.entry_id),
         PeekItDisableOverlayButton(hass, ip, name, entry.entry_id),
+        PeekItEnableAccessibilityButton(hass, ip, name, entry.entry_id),
+        PeekItDisableAccessibilityButton(hass, ip, name, entry.entry_id),
     ])
 
 
@@ -181,3 +183,52 @@ class PeekItDisableOverlayButton(PeekItAdbButton):
         ])
         if ok:
             _LOGGER.info("Overlay peek-it désactivé sur %s", self._ip)
+
+
+# --- Boutons Accessibilité ---
+
+class PeekItEnableAccessibilityButton(PeekItAdbButton):
+    """Bouton : activer le service d'accessibilité MenuKeyService."""
+
+    _attr_icon = "mdi:human"
+    _attr_translation_key = "enable_accessibility"
+
+    def __init__(self, hass, ip, device_name, entry_id):
+        super().__init__(hass, ip, device_name, entry_id)
+        self._attr_unique_id = f"peek_it_enable_accessibility_{ip}"
+
+    async def async_press(self) -> None:
+        cmd = (
+            f'current=$(settings get secure enabled_accessibility_services) && '
+            f'if echo "$current" | grep -q \'{PEEKIT_ACCESSIBILITY_COMPONENT}\'; then echo ok; else '
+            f'if [ -z "$current" ] || [ "$current" = "null" ]; then '
+            f'settings put secure enabled_accessibility_services {PEEKIT_ACCESSIBILITY_COMPONENT}; else '
+            f'settings put secure enabled_accessibility_services "$current:{PEEKIT_ACCESSIBILITY_COMPONENT}"; fi; fi'
+        )
+        ok = await self._run_adb([cmd])
+        if ok:
+            _LOGGER.info("Accessibilité peek-it activée sur %s", self._ip)
+
+
+class PeekItDisableAccessibilityButton(PeekItAdbButton):
+    """Bouton : désactiver le service d'accessibilité MenuKeyService."""
+
+    _attr_icon = "mdi:human-male-board-poll"
+    _attr_translation_key = "disable_accessibility"
+
+    def __init__(self, hass, ip, device_name, entry_id):
+        super().__init__(hass, ip, device_name, entry_id)
+        self._attr_unique_id = f"peek_it_disable_accessibility_{ip}"
+
+    async def async_press(self) -> None:
+        c = PEEKIT_ACCESSIBILITY_COMPONENT
+        cmd = (
+            "current=$(settings get secure enabled_accessibility_services) && "
+            f"new=$(echo \"$current\" | sed 's#{c}##' | sed 's/^://;s/:$//;s/::/:/' ) && "
+            "if [ -z \"$new\" ] || [ \"$new\" = \"null\" ]; then "
+            "settings put secure enabled_accessibility_services null; else "
+            "settings put secure enabled_accessibility_services \"$new\"; fi"
+        )
+        ok = await self._run_adb([cmd])
+        if ok:
+            _LOGGER.info("Accessibilité peek-it désactivée sur %s", self._ip)

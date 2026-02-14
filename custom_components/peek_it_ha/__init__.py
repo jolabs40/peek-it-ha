@@ -54,6 +54,21 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
+    # Vérifier si l'intégration Android TV est configurée
+    if not hass.config_entries.async_entries("androidtv"):
+        from homeassistant.components.persistent_notification import async_create
+        async_create(
+            hass,
+            title="Peek-it [HA] — Android TV recommandé",
+            message=(
+                "L'intégration **Android TV** n'est pas configurée. "
+                "Elle est recommandée pour les boutons ADB (Assist, Overlay, Accessibilité). "
+                "Vous pouvez l'ajouter dans *Paramètres → Intégrations*."
+            ),
+            notification_id="peek_it_androidtv_recommendation",
+        )
+
     return True
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

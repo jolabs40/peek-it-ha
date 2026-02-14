@@ -13,3 +13,4 @@ WEBHOOK_ID = "peek_it_debug"
 # ADB (pour les boutons Assist/Overlay)
 ADB_PORT = 5555
 PEEKIT_PACKAGE = "net.jolabs40.peekit"
+PEEKIT_ACCESSIBILITY_COMPONENT = f"{PEEKIT_PACKAGE}/{PEEKIT_PACKAGE}.MenuKeyService"

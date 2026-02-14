@@ -81,6 +81,23 @@
       },
       "disable_overlay": {
         "name": "Overlay uitschakelen"
+      },
+      "enable_accessibility": {
+        "name": "Toegankelijkheid inschakelen"
+      },
+      "disable_accessibility": {
+        "name": "Toegankelijkheid uitschakelen"
+      }
+    },
+    "binary_sensor": {
+      "permission_overlay": {
+        "name": "Overlay-machtiging"
+      },
+      "permission_accessibility": {
+        "name": "Toegankelijkheidsmachtiging"
+      },
+      "permission_microphone": {
+        "name": "Microfoonmachtiging"
       }
     }
   }

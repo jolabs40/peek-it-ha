@@ -7,7 +7,8 @@
           "ip_address": "Adresse IP",
           "port": "Port",
           "name": "Nom",
-          "api_key": "Cl\u00e9 API (optionnel)"
+          "api_key": "Cl\u00e9 API (optionnel)",
+          "atv_entity": "Entit\u00e9 Android TV (ex: media_player.shield)"
         }
       },
       "zeroconf_confirm": {
@@ -51,7 +52,8 @@
           "ip_address": "Adresse IP",
           "port": "Port",
           "name": "Nom",
-          "api_key": "Cl\u00e9 API (optionnel)"
+          "api_key": "Cl\u00e9 API (optionnel)",
+          "atv_entity": "Entit\u00e9 Android TV (ex: media_player.shield)"
         }
       },
       "templates": {

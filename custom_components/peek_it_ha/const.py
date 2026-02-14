@@ -6,10 +6,10 @@ CONF_IP_ADDRESS = "ip_address"
 CONF_NAME = "name"
 CONF_PORT = "port"
 CONF_API_KEY = "api_key"
+CONF_ATV_ENTITY = "atv_entity"
 
 # Fixed identifier for receiving logs (must match the Android app code)
 WEBHOOK_ID = "peek_it_debug"
 
-# ADB (for Assist enable/disable buttons)
-ADB_PORT = 5555
+# Package Android peek-it (pour les commandes ADB)
 PEEKIT_PACKAGE = "net.jolabs40.peekit"

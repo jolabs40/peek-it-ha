@@ -7,7 +7,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse
 from .const import DOMAIN, WEBHOOK_ID, DEFAULT_PORT, CONF_IP_ADDRESS, CONF_NAME, CONF_PORT, CONF_API_KEY
 
-PLATFORMS = ["binary_sensor", "notify"]
+PLATFORMS = ["binary_sensor", "notify", "button"]
 
 _LOGGER = logging.getLogger(__name__)
 

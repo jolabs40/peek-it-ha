@@ -67,5 +67,15 @@
       "cannot_connect": "Verbindung zum TV nicht m\u00f6glich",
       "auth_required": "TV verbunden, aber API-Schl\u00fcssel fehlt oder ist ung\u00fcltig"
     }
+  },
+  "entity": {
+    "button": {
+      "enable_assist": {
+        "name": "Assist aktivieren"
+      },
+      "disable_assist": {
+        "name": "Assist deaktivieren"
+      }
+    }
   }
 }

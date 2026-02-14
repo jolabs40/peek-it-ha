@@ -67,5 +67,15 @@
       "cannot_connect": "No se puede conectar al TV",
       "auth_required": "TV conectado pero la clave API falta o es inv\u00e1lida"
     }
+  },
+  "entity": {
+    "button": {
+      "enable_assist": {
+        "name": "Activar Assist"
+      },
+      "disable_assist": {
+        "name": "Desactivar Assist"
+      }
+    }
   }
 }

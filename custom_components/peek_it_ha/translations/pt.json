@@ -67,5 +67,15 @@
       "cannot_connect": "N\u00e3o \u00e9 poss\u00edvel ligar ao TV",
       "auth_required": "TV ligado mas a chave API est\u00e1 em falta ou \u00e9 inv\u00e1lida"
     }
+  },
+  "entity": {
+    "button": {
+      "enable_assist": {
+        "name": "Ativar Assist"
+      },
+      "disable_assist": {
+        "name": "Desativar Assist"
+      }
+    }
   }
 }

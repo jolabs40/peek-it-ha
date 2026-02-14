@@ -67,5 +67,15 @@
       "cannot_connect": "Impossible de se connecter \u00e0 la TV",
       "auth_required": "TV connect\u00e9e mais cl\u00e9 API manquante ou invalide"
     }
+  },
+  "entity": {
+    "button": {
+      "enable_assist": {
+        "name": "Activer Assist"
+      },
+      "disable_assist": {
+        "name": "D\u00e9sactiver Assist"
+      }
+    }
   }
 }

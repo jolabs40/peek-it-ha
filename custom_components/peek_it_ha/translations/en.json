@@ -67,5 +67,15 @@
       "cannot_connect": "Cannot connect to the TV",
       "auth_required": "TV connected but API key is missing or invalid"
     }
+  },
+  "entity": {
+    "button": {
+      "enable_assist": {
+        "name": "Enable Assist"
+      },
+      "disable_assist": {
+        "name": "Disable Assist"
+      }
+    }
   }
 }

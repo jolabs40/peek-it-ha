@@ -67,5 +67,15 @@
       "cannot_connect": "Kan geen verbinding maken met de TV",
       "auth_required": "TV verbonden maar API-sleutel ontbreekt of is ongeldig"
     }
+  },
+  "entity": {
+    "button": {
+      "enable_assist": {
+        "name": "Assist inschakelen"
+      },
+      "disable_assist": {
+        "name": "Assist uitschakelen"
+      }
+    }
   }
 }

@@ -6,6 +6,6 @@
   "documentation": "https://github.com/jolabs40/peek-it-ha",
   "iot_class": "local_polling",
   "version": "1.0.0",
-  "requirements": ["adb-shell>=0.4.0"],
+  "requirements": [],
   "zeroconf": [{"type": "_peekit._tcp.local."}]
 }

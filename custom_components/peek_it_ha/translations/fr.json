@@ -75,6 +75,12 @@
       },
       "disable_assist": {
         "name": "D\u00e9sactiver Assist"
+      },
+      "enable_overlay": {
+        "name": "Activer Overlay"
+      },
+      "disable_overlay": {
+        "name": "D\u00e9sactiver Overlay"
       }
     }
   }

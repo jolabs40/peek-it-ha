@@ -1,0 +1,71 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Peek-it [HA] toevoegen",
+        "data": {
+          "ip_address": "IP-adres",
+          "port": "Poort",
+          "name": "Naam",
+          "api_key": "API-sleutel (optioneel)"
+        }
+      },
+      "zeroconf_confirm": {
+        "title": "Peek-it [TV] ontdekt",
+        "description": "Een Peek-it [TV] apparaat is gevonden op {host}:{port}",
+        "data": {
+          "name": "Naam"
+        }
+      },
+      "zeroconf_confirm_auth": {
+        "title": "Peek-it [TV] ontdekt (API-sleutel vereist)",
+        "description": "Een Peek-it [TV] apparaat is gevonden op {host}:{port}. Een API-sleutel is vereist.",
+        "data": {
+          "name": "Naam",
+          "api_key": "API-sleutel"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Kan geen verbinding maken met de Android TV",
+      "auth_required": "Android TV verbonden maar API-sleutel ontbreekt of is ongeldig"
+    },
+    "abort": {
+      "already_configured": "Dit apparaat is al geconfigureerd",
+      "cannot_connect": "Kan geen verbinding maken met het apparaat"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Peek-it [HA] Opties",
+        "menu_options": {
+          "settings": "Instellingen",
+          "templates": "Sjablonen",
+          "designer": "Designer"
+        }
+      },
+      "settings": {
+        "title": "Instellingen",
+        "data": {
+          "ip_address": "IP-adres",
+          "port": "Poort",
+          "name": "Naam",
+          "api_key": "API-sleutel (optioneel)"
+        }
+      },
+      "templates": {
+        "title": "Beschikbare sjablonen",
+        "description": "{templates_info}"
+      },
+      "designer": {
+        "title": "Designer",
+        "description": "[Designer openen in een nieuw tabblad]({designer_url})"
+      }
+    },
+    "error": {
+      "cannot_connect": "Kan geen verbinding maken met de TV",
+      "auth_required": "TV verbonden maar API-sleutel ontbreekt of is ongeldig"
+    }
+  }
+}

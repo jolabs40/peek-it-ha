@@ -1,0 +1,227 @@
+get_templates:
+  name: Get templates
+  description: Retrieves the list of available templates from all configured Peek-it [TV] devices.
+
+notify:
+  name: Send notification
+  description: Sends a notification to all configured Peek-it [TV] devices. Supports 3 modes — simple message, template_id + params, or full JSON elements.
+  fields:
+    message:
+      name: Message
+      description: Text to display (simple message mode).
+      required: false
+      example: "Hello World"
+      selector:
+        text:
+    title:
+      name: Title
+      description: Optional title (simple message mode).
+      required: false
+      example: "Info"
+      selector:
+        text:
+    template_id:
+      name: Template ID
+      description: UUID of the template to use (copied from the Designer).
+      required: false
+      example: "70c3f0c7-ac0c-4b09-838a-e116ce9c9a11"
+      selector:
+        text:
+    params:
+      name: Parameters
+      description: "Parameter values (paramKey) or {{placeholders}} of the template (key: value)."
+      required: false
+      example:
+        title: "Welcome"
+        message: "Hello"
+      selector:
+        object:
+    elements:
+      name: Elements
+      description: Full JSON element list (advanced mode, copied from the Designer).
+      required: false
+      selector:
+        object:
+    duration:
+      name: Duration
+      description: Display duration in milliseconds.
+      required: false
+      default: 10000
+      example: 15000
+      selector:
+        number:
+          min: 1000
+          max: 300000
+          step: 1000
+          unit_of_measurement: ms
+          mode: box
+    action:
+      name: Action
+      description: Action to perform (DISPLAY or CLOSE).
+      required: false
+      default: "DISPLAY"
+      selector:
+        select:
+          options:
+            - "DISPLAY"
+            - "CLOSE"
+    priority:
+      name: Priority
+      description: Notification priority.
+      required: false
+      selector:
+        select:
+          options:
+            - "normal"
+            - "urgent"
+    animationIn:
+      name: Entrance animation
+      description: Appearance animation.
+      required: false
+      selector:
+        select:
+          options:
+            - "fade"
+            - "slide_right"
+            - "slide_left"
+            - "slide_bottom"
+            - "slide_top"
+            - "pop"
+            - "none"
+    animationOut:
+      name: Exit animation
+      description: Disappearance animation.
+      required: false
+      selector:
+        select:
+          options:
+            - "fade"
+            - "slide_right"
+            - "slide_left"
+            - "slide_bottom"
+            - "slide_top"
+            - "pop"
+            - "none"
+    sound:
+      name: Sound
+      description: Sound file name to play with the notification (e.g. "01_notify.wav").
+      required: false
+      example: "01_notify.wav"
+      selector:
+        text:
+    soundVolume:
+      name: Sound volume
+      description: Sound volume (0.0 to 1.0).
+      required: false
+      default: 1.0
+      selector:
+        number:
+          min: 0.0
+          max: 1.0
+          step: 0.1
+          mode: slider
+    tts:
+      name: TTS text
+      description: Text-to-speech message to read aloud with the notification.
+      required: false
+      example: "Motion detected in the garden"
+      selector:
+        text:
+    ttsLang:
+      name: TTS language
+      description: TTS language code (e.g. "en", "fr", "de").
+      required: false
+      default: "en"
+      example: "en"
+      selector:
+        text:
+    ttsSpeed:
+      name: TTS speed
+      description: TTS speech rate (0.5 to 2.0).
+      required: false
+      default: 1.0
+      selector:
+        number:
+          min: 0.5
+          max: 2.0
+          step: 0.1
+          mode: slider
+    ttsPitch:
+      name: TTS pitch
+      description: TTS voice pitch (0.5 to 2.0).
+      required: false
+      default: 1.0
+      selector:
+        number:
+          min: 0.5
+          max: 2.0
+          step: 0.1
+          mode: slider
+    ttsVolume:
+      name: TTS volume
+      description: TTS volume (0.0 to 1.0).
+      required: false
+      default: 1.0
+      selector:
+        number:
+          min: 0.0
+          max: 1.0
+          step: 0.1
+          mode: slider
+
+tts:
+  name: Text-to-speech
+  description: Sends a text-to-speech message to all configured Peek-it [TV] devices.
+  fields:
+    text:
+      name: Text
+      description: Text to speak aloud.
+      required: true
+      example: "Dinner is ready!"
+      selector:
+        text:
+    lang:
+      name: Language
+      description: Language code (e.g. "en", "fr", "de", "es").
+      required: false
+      default: "en"
+      example: "en"
+      selector:
+        text:
+    speed:
+      name: Speed
+      description: Speech rate (0.5 to 2.0).
+      required: false
+      default: 1.0
+      selector:
+        number:
+          min: 0.5
+          max: 2.0
+          step: 0.1
+          mode: slider
+    pitch:
+      name: Pitch
+      description: Voice pitch (0.5 to 2.0).
+      required: false
+      default: 1.0
+      selector:
+        number:
+          min: 0.5
+          max: 2.0
+          step: 0.1
+          mode: slider
+    volume:
+      name: Volume
+      description: TTS volume (0.0 to 1.0).
+      required: false
+      default: 1.0
+      selector:
+        number:
+          min: 0.0
+          max: 1.0
+          step: 0.1
+          mode: slider
+
+tts_stop:
+  name: Stop TTS
+  description: Stops any ongoing text-to-speech playback on all configured Peek-it [TV] devices.

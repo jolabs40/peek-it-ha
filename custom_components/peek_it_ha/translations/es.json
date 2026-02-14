@@ -1,0 +1,71 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "A\u00f1adir Peek-it [HA]",
+        "data": {
+          "ip_address": "Direcci\u00f3n IP",
+          "port": "Puerto",
+          "name": "Nombre",
+          "api_key": "Clave API (opcional)"
+        }
+      },
+      "zeroconf_confirm": {
+        "title": "Peek-it [TV] detectado",
+        "description": "Se encontr\u00f3 un dispositivo Peek-it [TV] en {host}:{port}",
+        "data": {
+          "name": "Nombre"
+        }
+      },
+      "zeroconf_confirm_auth": {
+        "title": "Peek-it [TV] detectado (clave API requerida)",
+        "description": "Se encontr\u00f3 un dispositivo Peek-it [TV] en {host}:{port}. Se requiere una clave API.",
+        "data": {
+          "name": "Nombre",
+          "api_key": "Clave API"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "No se puede conectar al Android TV",
+      "auth_required": "Android TV conectado pero la clave API falta o es inv\u00e1lida"
+    },
+    "abort": {
+      "already_configured": "Este dispositivo ya est\u00e1 configurado",
+      "cannot_connect": "No se puede conectar al dispositivo"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opciones Peek-it [HA]",
+        "menu_options": {
+          "settings": "Ajustes",
+          "templates": "Plantillas",
+          "designer": "Dise\u00f1ador"
+        }
+      },
+      "settings": {
+        "title": "Ajustes",
+        "data": {
+          "ip_address": "Direcci\u00f3n IP",
+          "port": "Puerto",
+          "name": "Nombre",
+          "api_key": "Clave API (opcional)"
+        }
+      },
+      "templates": {
+        "title": "Plantillas disponibles",
+        "description": "{templates_info}"
+      },
+      "designer": {
+        "title": "Dise\u00f1ador",
+        "description": "[Abrir el Dise\u00f1ador en una nueva pesta\u00f1a]({designer_url})"
+      }
+    },
+    "error": {
+      "cannot_connect": "No se puede conectar al TV",
+      "auth_required": "TV conectado pero la clave API falta o es inv\u00e1lida"
+    }
+  }
+}

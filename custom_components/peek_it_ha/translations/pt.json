@@ -1,0 +1,71 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Adicionar Peek-it [HA]",
+        "data": {
+          "ip_address": "Endere\u00e7o IP",
+          "port": "Porta",
+          "name": "Nome",
+          "api_key": "Chave API (opcional)"
+        }
+      },
+      "zeroconf_confirm": {
+        "title": "Peek-it [TV] detetado",
+        "description": "Um dispositivo Peek-it [TV] foi encontrado em {host}:{port}",
+        "data": {
+          "name": "Nome"
+        }
+      },
+      "zeroconf_confirm_auth": {
+        "title": "Peek-it [TV] detetado (chave API necess\u00e1ria)",
+        "description": "Um dispositivo Peek-it [TV] foi encontrado em {host}:{port}. \u00c9 necess\u00e1ria uma chave API.",
+        "data": {
+          "name": "Nome",
+          "api_key": "Chave API"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "N\u00e3o \u00e9 poss\u00edvel ligar ao Android TV",
+      "auth_required": "Android TV ligado mas a chave API est\u00e1 em falta ou \u00e9 inv\u00e1lida"
+    },
+    "abort": {
+      "already_configured": "Este dispositivo j\u00e1 est\u00e1 configurado",
+      "cannot_connect": "N\u00e3o \u00e9 poss\u00edvel ligar ao dispositivo"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Op\u00e7\u00f5es Peek-it [HA]",
+        "menu_options": {
+          "settings": "Defini\u00e7\u00f5es",
+          "templates": "Modelos",
+          "designer": "Designer"
+        }
+      },
+      "settings": {
+        "title": "Defini\u00e7\u00f5es",
+        "data": {
+          "ip_address": "Endere\u00e7o IP",
+          "port": "Porta",
+          "name": "Nome",
+          "api_key": "Chave API (opcional)"
+        }
+      },
+      "templates": {
+        "title": "Modelos dispon\u00edveis",
+        "description": "{templates_info}"
+      },
+      "designer": {
+        "title": "Designer",
+        "description": "[Abrir o Designer num novo separador]({designer_url})"
+      }
+    },
+    "error": {
+      "cannot_connect": "N\u00e3o \u00e9 poss\u00edvel ligar ao TV",
+      "auth_required": "TV ligado mas a chave API est\u00e1 em falta ou \u00e9 inv\u00e1lida"
+    }
+  }
+}

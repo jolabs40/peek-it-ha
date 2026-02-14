@@ -1,0 +1,71 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Peek-it [HA] hinzuf\u00fcgen",
+        "data": {
+          "ip_address": "IP-Adresse",
+          "port": "Port",
+          "name": "Name",
+          "api_key": "API-Schl\u00fcssel (optional)"
+        }
+      },
+      "zeroconf_confirm": {
+        "title": "Peek-it [TV] erkannt",
+        "description": "Ein Peek-it [TV] Ger\u00e4t wurde unter {host}:{port} gefunden",
+        "data": {
+          "name": "Name"
+        }
+      },
+      "zeroconf_confirm_auth": {
+        "title": "Peek-it [TV] erkannt (API-Schl\u00fcssel erforderlich)",
+        "description": "Ein Peek-it [TV] Ger\u00e4t wurde unter {host}:{port} gefunden. Ein API-Schl\u00fcssel ist erforderlich.",
+        "data": {
+          "name": "Name",
+          "api_key": "API-Schl\u00fcssel"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Verbindung zum Android TV nicht m\u00f6glich",
+      "auth_required": "Android TV verbunden, aber API-Schl\u00fcssel fehlt oder ist ung\u00fcltig"
+    },
+    "abort": {
+      "already_configured": "Dieses Ger\u00e4t ist bereits konfiguriert",
+      "cannot_connect": "Verbindung zum Ger\u00e4t nicht m\u00f6glich"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Peek-it [HA] Optionen",
+        "menu_options": {
+          "settings": "Einstellungen",
+          "templates": "Vorlagen",
+          "designer": "Designer"
+        }
+      },
+      "settings": {
+        "title": "Einstellungen",
+        "data": {
+          "ip_address": "IP-Adresse",
+          "port": "Port",
+          "name": "Name",
+          "api_key": "API-Schl\u00fcssel (optional)"
+        }
+      },
+      "templates": {
+        "title": "Verf\u00fcgbare Vorlagen",
+        "description": "{templates_info}"
+      },
+      "designer": {
+        "title": "Designer",
+        "description": "[Designer in neuem Tab \u00f6ffnen]({designer_url})"
+      }
+    },
+    "error": {
+      "cannot_connect": "Verbindung zum TV nicht m\u00f6glich",
+      "auth_required": "TV verbunden, aber API-Schl\u00fcssel fehlt oder ist ung\u00fcltig"
+    }
+  }
+}

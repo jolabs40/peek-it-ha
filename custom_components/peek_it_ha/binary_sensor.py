@@ -1,4 +1,4 @@
-"""Capteur binaire pour l'état de peek-it TV."""
+"""Binary sensor for Peek-it [TV] connection status."""
 from datetime import timedelta
 import logging
 import aiohttp
@@ -11,14 +11,14 @@ _LOGGER = logging.getLogger(__name__)
 SCAN_INTERVAL = timedelta(seconds=30)
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities):
-    """Configuration du capteur."""
+    """Set up the binary sensor."""
     data = hass.data[DOMAIN][entry.entry_id]
     port = data.get(CONF_PORT, DEFAULT_PORT)
     api_key = data.get(CONF_API_KEY, "")
     async_add_entities([PeekItStatusSensor(data[CONF_NAME], data[CONF_IP_ADDRESS], port, api_key)], True)
 
 class PeekItStatusSensor(BinarySensorEntity):
-    """Représente l'état de connexion à l'application TV."""
+    """Represents the connection status of the Peek-it [TV] app."""
 
     def __init__(self, name, ip, port=DEFAULT_PORT, api_key=""):
         self._name = f"{name} Status"
@@ -26,7 +26,7 @@ class PeekItStatusSensor(BinarySensorEntity):
         self._port = port
         self._api_key = api_key
         self._is_on = False
-        self._attr_unique_id = f"peek_it_status_{ip}"
+        self._attr_unique_id = f"peek_it_ha_status_{ip}"
         self._attr_device_class = "connectivity"
 
     @property
@@ -39,13 +39,13 @@ class PeekItStatusSensor(BinarySensorEntity):
 
     @property
     def extra_state_attributes(self):
-        """Attribut pour fournir le lien vers le Designer."""
+        """Provide a direct link to the Designer."""
         return {
             "designer_url": f"http://{self._ip}:{self._port}/index.html"
         }
 
     async def async_update(self):
-        """Interroge l'API /api/status."""
+        """Poll /api/status to check connectivity."""
         url = f"http://{self._ip}:{self._port}/api/status"
         headers = {"X-API-Key": self._api_key} if self._api_key else {}
         try:

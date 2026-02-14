@@ -1,0 +1,71 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add Peek-it [HA]",
+        "data": {
+          "ip_address": "IP Address",
+          "port": "Port",
+          "name": "Name",
+          "api_key": "API Key (optional)"
+        }
+      },
+      "zeroconf_confirm": {
+        "title": "Peek-it [TV] discovered",
+        "description": "A Peek-it [TV] device was found at {host}:{port}",
+        "data": {
+          "name": "Name"
+        }
+      },
+      "zeroconf_confirm_auth": {
+        "title": "Peek-it [TV] discovered (API key required)",
+        "description": "A Peek-it [TV] device was found at {host}:{port}. An API key is required.",
+        "data": {
+          "name": "Name",
+          "api_key": "API Key"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot connect to the Android TV",
+      "auth_required": "Android TV connected but API key is missing or invalid"
+    },
+    "abort": {
+      "already_configured": "This device is already configured",
+      "cannot_connect": "Cannot connect to the device"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Peek-it [HA] Options",
+        "menu_options": {
+          "settings": "Settings",
+          "templates": "Templates",
+          "designer": "Designer"
+        }
+      },
+      "settings": {
+        "title": "Settings",
+        "data": {
+          "ip_address": "IP Address",
+          "port": "Port",
+          "name": "Name",
+          "api_key": "API Key (optional)"
+        }
+      },
+      "templates": {
+        "title": "Available templates",
+        "description": "{templates_info}"
+      },
+      "designer": {
+        "title": "Designer",
+        "description": "[Open the Designer in a new tab]({designer_url})"
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot connect to the TV",
+      "auth_required": "TV connected but API key is missing or invalid"
+    }
+  }
+}

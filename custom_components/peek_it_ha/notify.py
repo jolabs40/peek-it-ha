@@ -1,4 +1,4 @@
-"""Plateforme de notification Stricte pour peek-it TV."""
+"""Strict notification platform for Peek-it [HA]."""
 import logging
 import aiohttp
 from homeassistant.components.notify import NotifyEntity
@@ -25,70 +25,86 @@ class PeekItNotificationEntity(NotifyEntity):
         self._port = port
         self._api_key = api_key
         self._url = f"http://{ip}:{port}/api/notify"
-        self._attr_unique_id = f"peek_it_sender_{ip}"
+        self._attr_unique_id = f"peek_it_ha_sender_{ip}"
         self._attr_name = name
 
     async def async_send_message(self, message: str, title: str = None, data: dict = None) -> None:
-        """Construit et envoie le Payload Strict."""
+        """Build and send the strict payload."""
 
-        # 1. Récupération de l'IP locale de HA pour que la Box puisse répondre (Logs)
+        # 1. Get HA local IP so the TV can send back logs
         try:
             ha_ip = await network.async_get_source_ip(self.hass, target_ip=self._ip)
         except Exception:
-            ha_ip = "127.0.0.1" # Fallback
+            ha_ip = "127.0.0.1"
 
-        # 2. Structure de base (Protocole V8)
+        # 2. Base payload structure
         payload = {
             "action": "DISPLAY",
             "duration": 10000,
             "source": "HA",
-            "ha_ip": str(ha_ip), # Indispensable pour le retour de logs
+            "ha_ip": str(ha_ip),
             "elements": []
         }
 
-        # 3. Construction ou Fusion des données
+        # 3. Build or merge data
         input_data = data or {}
 
-        # Champs communs optionnels
+        # Common optional fields
         if "priority" in input_data:
             payload["priority"] = str(input_data["priority"])
         if "duration" in input_data:
             payload["duration"] = int(input_data["duration"])
         if "action" in input_data:
             payload["action"] = str(input_data["action"])
+        if "animationIn" in input_data:
+            payload["animationIn"] = str(input_data["animationIn"])
+        if "animationOut" in input_data:
+            payload["animationOut"] = str(input_data["animationOut"])
 
-        # Mode 3 : template_id + params (le serveur résout le template)
+        # Sound passthrough
+        if "sound" in input_data:
+            payload["sound"] = str(input_data["sound"])
+        if "soundVolume" in input_data:
+            payload["soundVolume"] = float(input_data["soundVolume"])
+
+        # TTS passthrough
+        if "tts" in input_data:
+            payload["tts"] = str(input_data["tts"])
+        if "ttsLang" in input_data:
+            payload["ttsLang"] = str(input_data["ttsLang"])
+        if "ttsSpeed" in input_data:
+            payload["ttsSpeed"] = float(input_data["ttsSpeed"])
+        if "ttsPitch" in input_data:
+            payload["ttsPitch"] = float(input_data["ttsPitch"])
+        if "ttsVolume" in input_data:
+            payload["ttsVolume"] = float(input_data["ttsVolume"])
+
+        # Mode 3: template_id + params (server resolves the template)
         if "template_id" in input_data:
             payload["template_id"] = str(input_data["template_id"])
             if "params" in input_data and isinstance(input_data["params"], dict):
                 payload["params"] = {str(k): str(v) for k, v in input_data["params"].items()}
-            # Pas d'elements : le serveur les chargera depuis le template
 
-        # Mode 2 : JSON complet fourni via le Designer (copié dans 'data')
+        # Mode 2: Full JSON from the Designer
         elif "elements" in input_data:
             raw_elements = input_data.get("elements", [])
-
-            # Nettoyage strict des éléments pour éviter le crash Gson
             clean_elements = []
             for el in raw_elements:
                 clean_elements.append(self._sanitize_element(el))
             payload["elements"] = clean_elements
 
-        # Mode 1 : Message Simple
+        # Mode 1: Simple message
         else:
             if message:
-                # Fond
                 payload["elements"].append(self._sanitize_element({
                     "type": "box",
                     "style": {"left": 0, "top": 80, "width": 100, "height": 20, "bgColor": "#CC000000"}
                 }))
-                # Texte
                 payload["elements"].append(self._sanitize_element({
                     "type": "message",
                     "content": message,
                     "style": {"left": 5, "top": 82, "width": 90, "height": 16, "size": 30, "color": "#FFFFFF", "align": "center"}
                 }))
-                # Titre optionnel
                 if title:
                     payload["elements"].append(self._sanitize_element({
                         "type": "title",
@@ -96,23 +112,23 @@ class PeekItNotificationEntity(NotifyEntity):
                         "style": {"left": 5, "top": 72, "width": 90, "height": 8, "size": 35, "color": "#3d7eff", "align": "center", "weight": "bold"}
                     }))
 
-        # 4. Envoi
+        # 4. Send
         headers = {"X-API-Key": self._api_key} if self._api_key else {}
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.post(self._url, json=payload, headers=headers, timeout=5) as response:
                     if response.status != 200:
                         err_text = await response.text()
-                        _LOGGER.error(f"Erreur Box TV ({response.status}): {err_text}")
+                        _LOGGER.error("Error TV Box (%s): %s", response.status, err_text)
                     else:
-                        _LOGGER.debug(f"Payload envoyé à {self._ip}")
+                        _LOGGER.debug("Payload sent to %s", self._ip)
         except Exception as e:
-            _LOGGER.error(f"Erreur connexion TV: {e}")
+            _LOGGER.error("Connection error TV: %s", e)
 
     def _sanitize_element(self, el):
-        """Force les types pour le protocole Java Strict."""
+        """Force types for the strict Java protocol."""
         s = el.get("style", {})
-        
+
         clean_style = {
             "left": float(s.get("left", 0)),
             "top": float(s.get("top", 0)),
@@ -128,8 +144,20 @@ class PeekItNotificationEntity(NotifyEntity):
             "font": str(s.get("font", "Roboto")),
             "weight": str(s.get("weight", "normal")),
             "align": str(s.get("align", "center")),
-            "focusColor": str(s.get("focusColor", "#FFFFFF"))
+            "focusColor": str(s.get("focusColor", "#FFFFFF")),
+            "focusBgColor": str(s.get("focusBgColor", "#00000000")),
         }
+
+        # Optional style properties (only include if present)
+        for key in ("shadowColor", "shadowOpacity", "shadowBlur", "shadowOffsetX", "shadowOffsetY"):
+            if key in s:
+                clean_style[key] = float(s[key]) if key != "shadowColor" else str(s[key])
+        if "animation" in s:
+            clean_style["animation"] = str(s["animation"])
+        if "animationSpeed" in s:
+            clean_style["animationSpeed"] = float(s["animationSpeed"])
+        if "rotation" in s:
+            clean_style["rotation"] = float(s["rotation"])
 
         result = {
             "type": str(el.get("type", "box")),

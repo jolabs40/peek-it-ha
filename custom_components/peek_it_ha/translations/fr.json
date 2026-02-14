@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "Ajouter peek-it TV",
+        "title": "Ajouter Peek-it [HA]",
         "data": {
           "ip_address": "Adresse IP",
           "port": "Port",
@@ -11,15 +11,15 @@
         }
       },
       "zeroconf_confirm": {
-        "title": "peek-it TV d\u00e9tect\u00e9",
-        "description": "Un appareil peek-it TV a \u00e9t\u00e9 d\u00e9tect\u00e9 \u00e0 {host}:{port}",
+        "title": "Peek-it [TV] d\u00e9tect\u00e9",
+        "description": "Un appareil Peek-it [TV] a \u00e9t\u00e9 d\u00e9tect\u00e9 \u00e0 {host}:{port}",
         "data": {
           "name": "Nom"
         }
       },
       "zeroconf_confirm_auth": {
-        "title": "peek-it TV d\u00e9tect\u00e9 (cl\u00e9 API requise)",
-        "description": "Un appareil peek-it TV a \u00e9t\u00e9 d\u00e9tect\u00e9 \u00e0 {host}:{port}. Une cl\u00e9 API est n\u00e9cessaire.",
+        "title": "Peek-it [TV] d\u00e9tect\u00e9 (cl\u00e9 API requise)",
+        "description": "Un appareil Peek-it [TV] a \u00e9t\u00e9 d\u00e9tect\u00e9 \u00e0 {host}:{port}. Une cl\u00e9 API est n\u00e9cessaire.",
         "data": {
           "name": "Nom",
           "api_key": "Cl\u00e9 API"
@@ -38,15 +38,15 @@
   "options": {
     "step": {
       "init": {
-        "title": "Options peek-it TV",
+        "title": "Options Peek-it [HA]",
         "menu_options": {
-          "settings": "Paramètres",
+          "settings": "Param\u00e8tres",
           "templates": "Templates",
           "designer": "Designer"
         }
       },
       "settings": {
-        "title": "Paramètres",
+        "title": "Param\u00e8tres",
         "data": {
           "ip_address": "Adresse IP",
           "port": "Port",
@@ -64,8 +64,8 @@
       }
     },
     "error": {
-      "cannot_connect": "Impossible de se connecter \u00e0 la Box TV",
-      "auth_required": "Box TV connect\u00e9e mais cl\u00e9 API manquante ou invalide"
+      "cannot_connect": "Impossible de se connecter \u00e0 la TV",
+      "auth_required": "TV connect\u00e9e mais cl\u00e9 API manquante ou invalide"
     }
   }
 }

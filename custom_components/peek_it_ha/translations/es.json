@@ -7,8 +7,7 @@
           "ip_address": "Direcci\u00f3n IP",
           "port": "Puerto",
           "name": "Nombre",
-          "api_key": "Clave API (opcional)",
-          "atv_entity": "Entidad Android TV (ej: media_player.shield)"
+          "api_key": "Clave API (opcional)"
         }
       },
       "zeroconf_confirm": {
@@ -52,8 +51,7 @@
           "ip_address": "Direcci\u00f3n IP",
           "port": "Puerto",
           "name": "Nombre",
-          "api_key": "Clave API (opcional)",
-          "atv_entity": "Entidad Android TV (ej: media_player.shield)"
+          "api_key": "Clave API (opcional)"
         }
       },
       "templates": {

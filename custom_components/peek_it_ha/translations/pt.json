@@ -7,8 +7,7 @@
           "ip_address": "Endere\u00e7o IP",
           "port": "Porta",
           "name": "Nome",
-          "api_key": "Chave API (opcional)",
-          "atv_entity": "Entidade Android TV (ex: media_player.shield)"
+          "api_key": "Chave API (opcional)"
         }
       },
       "zeroconf_confirm": {
@@ -52,8 +51,7 @@
           "ip_address": "Endere\u00e7o IP",
           "port": "Porta",
           "name": "Nome",
-          "api_key": "Chave API (opcional)",
-          "atv_entity": "Entidade Android TV (ex: media_player.shield)"
+          "api_key": "Chave API (opcional)"
         }
       },
       "templates": {

@@ -4,7 +4,7 @@ import aiohttp
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
-from .const import DOMAIN, CONF_IP_ADDRESS, CONF_NAME, CONF_PORT, CONF_API_KEY, CONF_ATV_ENTITY, DEFAULT_PORT
+from .const import DOMAIN, CONF_IP_ADDRESS, CONF_NAME, CONF_PORT, CONF_API_KEY, DEFAULT_PORT
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -129,7 +129,6 @@ class PeekItConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Optional(CONF_PORT, default=DEFAULT_PORT): int,
                 vol.Optional(CONF_NAME, default="Living Room TV"): str,
                 vol.Optional(CONF_API_KEY, default=""): str,
-                vol.Optional(CONF_ATV_ENTITY, default=""): str,
             }),
             errors=errors,
         )
@@ -185,7 +184,6 @@ class PeekItOptionsFlow(config_entries.OptionsFlow):
                 vol.Optional(CONF_PORT, default=current.get(CONF_PORT, DEFAULT_PORT)): int,
                 vol.Optional(CONF_NAME, default=current.get(CONF_NAME, "Living Room TV")): str,
                 vol.Optional(CONF_API_KEY, default=current.get(CONF_API_KEY, "")): str,
-                vol.Optional(CONF_ATV_ENTITY, default=current.get(CONF_ATV_ENTITY, "")): str,
             }),
             errors=errors,
         )

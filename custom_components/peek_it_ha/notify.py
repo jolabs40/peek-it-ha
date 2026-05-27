@@ -28,7 +28,12 @@ class PeekItNotificationEntity(NotifyEntity):
         self._attr_unique_id = f"peek_it_ha_sender_{ip}"
         self._attr_name = name
 
-    async def async_send_message(self, message: str, title: str = None, data: dict = None) -> None:
+    async def async_send_message(
+        self,
+        message: str,
+        title: str | None = None,
+        data: dict | None = None,
+    ) -> None:
         """Build and send the strict payload."""
 
         # 1. Get HA local IP so the TV can send back logs

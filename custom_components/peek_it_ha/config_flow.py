@@ -1,10 +1,24 @@
 """Config flow for Peek-it [HA]."""
 import logging
+import secrets
 import aiohttp
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
-from .const import DOMAIN, CONF_IP_ADDRESS, CONF_NAME, CONF_PORT, CONF_API_KEY, DEFAULT_PORT
+from .const import (
+    DOMAIN,
+    CONF_IP_ADDRESS,
+    CONF_NAME,
+    CONF_PORT,
+    CONF_API_KEY,
+    CONF_WEBHOOK_SECRET,
+    DEFAULT_PORT,
+)
+
+
+def _generate_webhook_secret() -> str:
+    """Generate a new URL-safe webhook secret."""
+    return secrets.token_urlsafe(32)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -43,14 +57,20 @@ class PeekItConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Confirmation after automatic discovery."""
         if user_input is not None:
             name = user_input.get(CONF_NAME, self._discovered_name)
+            webhook_secret = _generate_webhook_secret()
             data = {
                 CONF_IP_ADDRESS: self._discovered_ip,
                 CONF_PORT: self._discovered_port,
                 CONF_NAME: name,
                 CONF_API_KEY: "",
+                CONF_WEBHOOK_SECRET: webhook_secret,
             }
             await _send_welcome_notification(
-                self._discovered_ip, self._discovered_port, "", name
+                self._discovered_ip,
+                self._discovered_port,
+                "",
+                name,
+                webhook_secret,
             )
             return self.async_create_entry(title=name, data=data)
 
@@ -75,14 +95,20 @@ class PeekItConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             )
             if result == "ok":
                 name = user_input.get(CONF_NAME, self._discovered_name)
+                webhook_secret = _generate_webhook_secret()
                 data = {
                     CONF_IP_ADDRESS: self._discovered_ip,
                     CONF_PORT: self._discovered_port,
                     CONF_NAME: name,
                     CONF_API_KEY: api_key,
+                    CONF_WEBHOOK_SECRET: webhook_secret,
                 }
                 await _send_welcome_notification(
-                    self._discovered_ip, self._discovered_port, api_key, name
+                    self._discovered_ip,
+                    self._discovered_port,
+                    api_key,
+                    name,
+                    webhook_secret,
                 )
                 return self.async_create_entry(title=name, data=data)
             else:
@@ -112,11 +138,12 @@ class PeekItConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             result = await _test_connection(ip, port, api_key)
             if result == "ok":
                 name = user_input.get(CONF_NAME, "Android TV")
-                await _send_welcome_notification(ip, port, api_key, name)
-                return self.async_create_entry(
-                    title=name,
-                    data=user_input
+                webhook_secret = _generate_webhook_secret()
+                data = {**user_input, CONF_WEBHOOK_SECRET: webhook_secret}
+                await _send_welcome_notification(
+                    ip, port, api_key, name, webhook_secret
                 )
+                return self.async_create_entry(title=name, data=data)
             elif result == "auth_required":
                 errors["base"] = "auth_required"
             else:
@@ -165,9 +192,15 @@ class PeekItOptionsFlow(config_entries.OptionsFlow):
             result = await _test_connection(ip, port, api_key)
             if result == "ok":
                 name = user_input.get(CONF_NAME, "Living Room TV")
-                await _send_welcome_notification(ip, port, api_key, name)
+                webhook_secret = self._entry.data.get(
+                    CONF_WEBHOOK_SECRET
+                ) or _generate_webhook_secret()
+                new_data = {**user_input, CONF_WEBHOOK_SECRET: webhook_secret}
+                await _send_welcome_notification(
+                    ip, port, api_key, name, webhook_secret
+                )
                 self.hass.config_entries.async_update_entry(
-                    self._entry, data=user_input
+                    self._entry, data=new_data
                 )
                 await self.hass.config_entries.async_reload(self._entry.entry_id)
                 return self.async_create_entry(data={})
@@ -306,12 +339,19 @@ async def _test_connection(ip, port, api_key=""):
         return "failed"
 
 
-async def _send_welcome_notification(ip, port, api_key="", name="TV"):
-    """Send a welcome notification to the TV."""
+async def _send_welcome_notification(
+    ip, port, api_key: str = "", name: str = "TV", webhook_secret: str | None = None
+):
+    """Send a welcome notification to the TV.
+
+    The optional ``webhook_secret`` is shipped to the TV in a top-level field
+    so the Android client can persist it and include it as ``X-Peek-Secret``
+    on subsequent webhook callbacks.
+    """
     url = f"http://{ip}:{port}/api/notify"
     headers = {"X-API-Key": api_key} if api_key else {}
 
-    payload = {
+    payload: dict = {
         "action": "DISPLAY",
         "duration": 8000,
         "source": "HA",
@@ -381,6 +421,9 @@ async def _send_welcome_notification(ip, port, api_key="", name="TV"):
             }},
         ]
     }
+
+    if webhook_secret:
+        payload["webhook_secret"] = webhook_secret
 
     try:
         async with aiohttp.ClientSession() as session:

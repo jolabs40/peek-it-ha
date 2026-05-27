@@ -48,7 +48,7 @@ async def test_simple_message_builds_box_and_message(
     await hass.async_block_till_done()
 
     posts = [c for c in aioclient_mock.mock_calls
-             if c[0] == "post" and str(c[1]).endswith("/api/notify")]
+             if c[0].lower() == "post" and str(c[1]).endswith("/api/notify")]
     assert posts, "Notify payload was not POSTed"
     payload = posts[-1][2]
     types = [el["type"] for el in payload["elements"]]
@@ -80,7 +80,7 @@ async def test_template_mode_passes_template_id(
     )
     await hass.async_block_till_done()
 
-    posts = [c for c in aioclient_mock.mock_calls if c[0] == "post"]
+    posts = [c for c in aioclient_mock.mock_calls if c[0].lower() == "post"]
     assert posts
     payload = posts[-1][2]
     assert payload["template_id"] == "abc-123"
@@ -111,7 +111,7 @@ async def test_elements_mode_passes_raw_elements(
     )
     await hass.async_block_till_done()
 
-    posts = [c for c in aioclient_mock.mock_calls if c[0] == "post"]
+    posts = [c for c in aioclient_mock.mock_calls if c[0].lower() == "post"]
     assert posts
     payload = posts[-1][2]
     assert len(payload["elements"]) == 1
@@ -137,7 +137,7 @@ async def test_tts_service_payload(
     await hass.async_block_till_done()
 
     posts = [c for c in aioclient_mock.mock_calls
-             if c[0] == "post" and str(c[1]).endswith("/api/tts")]
+             if c[0].lower() == "post" and str(c[1]).endswith("/api/tts")]
     assert posts
     payload = posts[-1][2]
     assert payload == {

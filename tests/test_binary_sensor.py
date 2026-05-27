@@ -98,7 +98,7 @@ async def test_single_poll_for_all_entities(
 
     status_calls = [
         c for c in aioclient_mock.mock_calls
-        if c[0] == "get" and "/api/status" in str(c[1])
+        if c[0].lower() == "get" and "/api/status" in str(c[1])
     ]
     # First refresh after setup. No additional polls per entity.
     assert len(status_calls) == 1

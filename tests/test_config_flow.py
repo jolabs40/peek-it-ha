@@ -252,7 +252,7 @@ async def test_welcome_notification_includes_secret(
     )
     assert result2["type"] == data_entry_flow.FlowResultType.CREATE_ENTRY
 
-    posted = [c for c in aioclient_mock.mock_calls if c[0] == "post"]
+    posted = [c for c in aioclient_mock.mock_calls if c[0].lower() == "post"]
     assert posted, "No welcome notification was POSTed"
     payload = posted[-1][2]
     assert payload["webhook_secret"] == result2["data"][CONF_WEBHOOK_SECRET]

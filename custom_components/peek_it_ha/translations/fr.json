@@ -7,32 +7,32 @@
           "ip_address": "Adresse IP",
           "port": "Port",
           "name": "Nom",
-          "api_key": "Cl\u00e9 API (optionnel)"
+          "api_key": "Clé API (optionnel)"
         }
       },
       "zeroconf_confirm": {
-        "title": "Peek-it [TV] d\u00e9tect\u00e9",
-        "description": "Un appareil Peek-it [TV] a \u00e9t\u00e9 d\u00e9tect\u00e9 \u00e0 {host}:{port}",
+        "title": "Peek-it [TV] détecté",
+        "description": "Un appareil Peek-it [TV] a été détecté à {host}:{port}",
         "data": {
           "name": "Nom"
         }
       },
       "zeroconf_confirm_auth": {
-        "title": "Peek-it [TV] d\u00e9tect\u00e9 (cl\u00e9 API requise)",
-        "description": "Un appareil Peek-it [TV] a \u00e9t\u00e9 d\u00e9tect\u00e9 \u00e0 {host}:{port}. Une cl\u00e9 API est n\u00e9cessaire.",
+        "title": "Peek-it [TV] détecté (clé API requise)",
+        "description": "Un appareil Peek-it [TV] a été détecté à {host}:{port}. Une clé API est nécessaire.",
         "data": {
           "name": "Nom",
-          "api_key": "Cl\u00e9 API"
+          "api_key": "Clé API"
         }
       }
     },
     "error": {
-      "cannot_connect": "Impossible de se connecter \u00e0 l'Android TV",
-      "auth_required": "Android TV connect\u00e9e mais cl\u00e9 API manquante ou invalide"
+      "cannot_connect": "Impossible de se connecter à l'Android TV",
+      "auth_required": "Android TV connectée mais clé API manquante ou invalide"
     },
     "abort": {
-      "already_configured": "Cet appareil est d\u00e9j\u00e0 configur\u00e9",
-      "cannot_connect": "Impossible de se connecter \u00e0 l'appareil"
+      "already_configured": "Cet appareil est déjà configuré",
+      "cannot_connect": "Impossible de se connecter à l'appareil"
     }
   },
   "options": {
@@ -40,18 +40,18 @@
       "init": {
         "title": "Options Peek-it [HA]",
         "menu_options": {
-          "settings": "Param\u00e8tres",
+          "settings": "Paramètres",
           "templates": "Templates",
           "designer": "Designer"
         }
       },
       "settings": {
-        "title": "Param\u00e8tres",
+        "title": "Paramètres",
         "data": {
           "ip_address": "Adresse IP",
           "port": "Port",
           "name": "Nom",
-          "api_key": "Cl\u00e9 API (optionnel)"
+          "api_key": "Clé API (optionnel)"
         }
       },
       "templates": {
@@ -64,8 +64,8 @@
       }
     },
     "error": {
-      "cannot_connect": "Impossible de se connecter \u00e0 la TV",
-      "auth_required": "TV connect\u00e9e mais cl\u00e9 API manquante ou invalide"
+      "cannot_connect": "Impossible de se connecter à la TV",
+      "auth_required": "TV connectée mais clé API manquante ou invalide"
     }
   },
   "entity": {
@@ -74,27 +74,30 @@
         "name": "Activer Assist"
       },
       "disable_assist": {
-        "name": "D\u00e9sactiver Assist"
+        "name": "Désactiver Assist"
       },
       "enable_overlay": {
         "name": "Activer Overlay"
       },
       "disable_overlay": {
-        "name": "D\u00e9sactiver Overlay"
+        "name": "Désactiver Overlay"
       },
       "enable_accessibility": {
-        "name": "Activer Accessibilit\u00e9"
+        "name": "Activer Accessibilité"
       },
       "disable_accessibility": {
-        "name": "D\u00e9sactiver Accessibilit\u00e9"
+        "name": "Désactiver Accessibilité"
       }
     },
     "binary_sensor": {
+      "status": {
+        "name": "Statut"
+      },
       "permission_overlay": {
         "name": "Permission Overlay"
       },
       "permission_accessibility": {
-        "name": "Permission Accessibilit\u00e9"
+        "name": "Permission Accessibilité"
       },
       "permission_microphone": {
         "name": "Permission Microphone"

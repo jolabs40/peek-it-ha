@@ -1,11 +1,14 @@
 """Peek-it [HA] integration setup with log forwarding and TTS services."""
+from __future__ import annotations
+
 import logging
 import secrets
-import aiohttp
+
 from aiohttp.web import Request, Response
 from homeassistant.components import webhook, network
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse
+
 from .const import (
     DOMAIN,
     WEBHOOK_ID,
@@ -17,6 +20,8 @@ from .const import (
     CONF_API_KEY,
     CONF_WEBHOOK_SECRET,
 )
+from .coordinator import PeekItCoordinator
+from .http import async_post_json
 
 PLATFORMS = ["binary_sensor", "notify", "button"]
 
@@ -42,16 +47,32 @@ def _ensure_webhook_secret(hass: HomeAssistant, entry: ConfigEntry) -> str:
     return secret
 
 
+def _iter_coordinators(hass: HomeAssistant):
+    """Yield every PeekItCoordinator currently stored in hass.data."""
+    for value in hass.data.get(DOMAIN, {}).values():
+        if isinstance(value, PeekItCoordinator):
+            yield value
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up the integration."""
     hass.data.setdefault(DOMAIN, {})
 
     # Migration: every entry must carry a webhook secret.
     _ensure_webhook_secret(hass, entry)
-    hass.data[DOMAIN][entry.entry_id] = entry.data
+
+    coordinator = PeekItCoordinator(
+        hass,
+        ip=entry.data[CONF_IP_ADDRESS],
+        port=entry.data.get(CONF_PORT, DEFAULT_PORT),
+        api_key=entry.data.get(CONF_API_KEY, ""),
+        name=entry.data.get(CONF_NAME, "peek-it"),
+    )
+    # Do not block setup on first refresh — the TV may be offline.
+    await coordinator.async_refresh()
+    hass.data[DOMAIN][entry.entry_id] = coordinator
 
     # 1. Register webhook (once for the whole integration — all entries share it)
-    # URL: http://HA_IP:8123/api/webhook/peek_it_debug
     if not hass.data[DOMAIN].get(_WEBHOOK_REGISTERED_KEY):
         webhook.async_register(
             hass,
@@ -71,23 +92,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             supports_response=SupportsResponse.ONLY,
         )
     if not hass.services.has_service(DOMAIN, "notify"):
-        hass.services.async_register(
-            DOMAIN,
-            "notify",
-            async_notify,
-        )
+        hass.services.async_register(DOMAIN, "notify", async_notify)
     if not hass.services.has_service(DOMAIN, "tts"):
-        hass.services.async_register(
-            DOMAIN,
-            "tts",
-            async_tts,
-        )
+        hass.services.async_register(DOMAIN, "tts", async_tts)
     if not hass.services.has_service(DOMAIN, "tts_stop"):
-        hass.services.async_register(
-            DOMAIN,
-            "tts_stop",
-            async_tts_stop,
-        )
+        hass.services.async_register(DOMAIN, "tts_stop", async_tts_stop)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
@@ -107,16 +116,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     return True
 
+
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload entry."""
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id, None)
-        # Tear down shared resources only when the last entry leaves
-        remaining_entries = [
-            k for k in hass.data[DOMAIN] if k != _WEBHOOK_REGISTERED_KEY
-        ]
-        if not remaining_entries:
+        # Tear down shared resources only when the last entry leaves.
+        remaining = [k for k in hass.data[DOMAIN] if k != _WEBHOOK_REGISTERED_KEY]
+        if not remaining:
             if hass.data[DOMAIN].pop(_WEBHOOK_REGISTERED_KEY, False):
                 webhook.async_unregister(hass, WEBHOOK_ID)
             hass.services.async_remove(DOMAIN, "get_templates")
@@ -125,27 +133,29 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             hass.services.async_remove(DOMAIN, "tts_stop")
     return unload_ok
 
+
+async def _resolve_ha_ip(hass: HomeAssistant, target_ip: str) -> str:
+    """Best-effort source IP for the TV to call back."""
+    try:
+        return await network.async_get_source_ip(hass, target_ip=target_ip)
+    except Exception:  # noqa: BLE001 — network lookup is best-effort
+        return "127.0.0.1"
+
+
+def _common_headers(api_key: str) -> dict[str, str]:
+    return {"X-API-Key": api_key} if api_key else {}
+
+
 async def async_notify(call: ServiceCall) -> None:
     """Send a notification to all configured devices."""
     hass = call.hass
     call_data = dict(call.data)
 
-    for entry_data in hass.data.get(DOMAIN, {}).values():
-        name = entry_data.get(CONF_NAME, "TV")
-        ip = entry_data.get(CONF_IP_ADDRESS)
-        port = entry_data.get(CONF_PORT, DEFAULT_PORT)
-        api_key = entry_data.get(CONF_API_KEY, "")
-        url = f"http://{ip}:{port}/api/notify"
-        headers = {"X-API-Key": api_key} if api_key else {}
+    for coord in _iter_coordinators(hass):
+        url = f"http://{coord.ip}:{coord.port}/api/notify"
+        ha_ip = await _resolve_ha_ip(hass, coord.ip)
 
-        # Get HA local IP for log callbacks
-        try:
-            ha_ip = await network.async_get_source_ip(hass, target_ip=ip)
-        except Exception:
-            ha_ip = "127.0.0.1"
-
-        # Build payload
-        payload = {
+        payload: dict = {
             "action": str(call_data.get("action", "DISPLAY")),
             "duration": int(call_data.get("duration", 10000)),
             "source": "HA",
@@ -161,13 +171,11 @@ async def async_notify(call: ServiceCall) -> None:
         if "animationOut" in call_data:
             payload["animationOut"] = str(call_data["animationOut"])
 
-        # Sound passthrough
         if "sound" in call_data:
             payload["sound"] = str(call_data["sound"])
         if "soundVolume" in call_data:
             payload["soundVolume"] = float(call_data["soundVolume"])
 
-        # TTS passthrough
         if "tts" in call_data:
             payload["tts"] = str(call_data["tts"])
         if "ttsLang" in call_data:
@@ -179,44 +187,41 @@ async def async_notify(call: ServiceCall) -> None:
         if "ttsVolume" in call_data:
             payload["ttsVolume"] = float(call_data["ttsVolume"])
 
-        # Template mode
         if "template_id" in call_data:
             payload["template_id"] = str(call_data["template_id"])
             if "params" in call_data and isinstance(call_data["params"], dict):
-                payload["params"] = {str(k): str(v) for k, v in call_data["params"].items()}
-
-        # Elements mode
+                payload["params"] = {
+                    str(k): str(v) for k, v in call_data["params"].items()
+                }
         elif "elements" in call_data:
             payload["elements"] = call_data["elements"]
-
-        # Simple message mode
         elif "message" in call_data:
             message = str(call_data["message"])
             payload["elements"].append({
                 "type": "box",
-                "style": {"left": 0, "top": 80, "width": 100, "height": 20, "bgColor": "#CC000000"}
+                "style": {"left": 0, "top": 80, "width": 100, "height": 20,
+                          "bgColor": "#CC000000"}
             })
             payload["elements"].append({
                 "type": "message", "content": message,
-                "style": {"left": 5, "top": 82, "width": 90, "height": 16, "size": 30, "color": "#FFFFFF", "align": "center"}
+                "style": {"left": 5, "top": 82, "width": 90, "height": 16,
+                          "size": 30, "color": "#FFFFFF", "align": "center"}
             })
             if "title" in call_data:
                 payload["elements"].append({
                     "type": "title", "content": str(call_data["title"]),
-                    "style": {"left": 5, "top": 72, "width": 90, "height": 8, "size": 35, "color": "#3d7eff", "align": "center", "weight": "bold"}
+                    "style": {"left": 5, "top": 72, "width": 90, "height": 8,
+                              "size": 35, "color": "#3d7eff",
+                              "align": "center", "weight": "bold"}
                 })
 
-        # Send
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.post(url, json=payload, headers=headers, timeout=5) as response:
-                    if response.status != 200:
-                        err_text = await response.text()
-                        _LOGGER.error("Error TV %s (%s): %s", name, response.status, err_text)
-                    else:
-                        _LOGGER.debug("Notification sent to %s (%s:%s)", name, ip, port)
-        except Exception as e:
-            _LOGGER.error("Connection error %s: %s", name, e)
+        await async_post_json(
+            hass,
+            url,
+            payload,
+            headers=_common_headers(coord.api_key),
+            context=f"notify {coord.device_name}",
+        )
 
 
 async def async_tts(call: ServiceCall) -> None:
@@ -224,14 +229,8 @@ async def async_tts(call: ServiceCall) -> None:
     hass = call.hass
     call_data = dict(call.data)
 
-    for entry_data in hass.data.get(DOMAIN, {}).values():
-        name = entry_data.get(CONF_NAME, "TV")
-        ip = entry_data.get(CONF_IP_ADDRESS)
-        port = entry_data.get(CONF_PORT, DEFAULT_PORT)
-        api_key = entry_data.get(CONF_API_KEY, "")
-        url = f"http://{ip}:{port}/api/tts"
-        headers = {"X-API-Key": api_key} if api_key else {}
-
+    for coord in _iter_coordinators(hass):
+        url = f"http://{coord.ip}:{coord.port}/api/tts"
         payload = {
             "text": str(call_data.get("text", "")),
             "lang": str(call_data.get("lang", "en")),
@@ -239,64 +238,55 @@ async def async_tts(call: ServiceCall) -> None:
             "pitch": float(call_data.get("pitch", 1.0)),
             "volume": float(call_data.get("volume", 1.0)),
         }
-
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.post(url, json=payload, headers=headers, timeout=5) as response:
-                    if response.status != 200:
-                        err_text = await response.text()
-                        _LOGGER.error("TTS error %s (%s): %s", name, response.status, err_text)
-                    else:
-                        _LOGGER.debug("TTS sent to %s (%s:%s)", name, ip, port)
-        except Exception as e:
-            _LOGGER.error("TTS connection error %s: %s", name, e)
+        await async_post_json(
+            hass,
+            url,
+            payload,
+            headers=_common_headers(coord.api_key),
+            context=f"tts {coord.device_name}",
+        )
 
 
 async def async_tts_stop(call: ServiceCall) -> None:
     """Stop TTS on all configured devices."""
     hass = call.hass
-
-    for entry_data in hass.data.get(DOMAIN, {}).values():
-        name = entry_data.get(CONF_NAME, "TV")
-        ip = entry_data.get(CONF_IP_ADDRESS)
-        port = entry_data.get(CONF_PORT, DEFAULT_PORT)
-        api_key = entry_data.get(CONF_API_KEY, "")
-        url = f"http://{ip}:{port}/api/tts/stop"
-        headers = {"X-API-Key": api_key} if api_key else {}
-
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.post(url, json={}, headers=headers, timeout=5) as response:
-                    if response.status != 200:
-                        _LOGGER.error("TTS stop error %s (%s)", name, response.status)
-        except Exception as e:
-            _LOGGER.error("TTS stop connection error %s: %s", name, e)
+    for coord in _iter_coordinators(hass):
+        url = f"http://{coord.ip}:{coord.port}/api/tts/stop"
+        await async_post_json(
+            hass,
+            url,
+            {},
+            headers=_common_headers(coord.api_key),
+            context=f"tts_stop {coord.device_name}",
+        )
 
 
 async def async_get_templates(call: ServiceCall) -> dict:
     """Retrieve the template list from all configured devices."""
+    import asyncio  # local — only needed here
+
+    import aiohttp
+    from homeassistant.helpers.aiohttp_client import async_get_clientsession
+
     hass = call.hass
-    result = {}
+    result: dict = {}
+    session = async_get_clientsession(hass)
 
-    for entry_data in hass.data.get(DOMAIN, {}).values():
-        name = entry_data.get(CONF_NAME, "TV")
-        ip = entry_data.get(CONF_IP_ADDRESS)
-        port = entry_data.get(CONF_PORT, DEFAULT_PORT)
-        api_key = entry_data.get(CONF_API_KEY, "")
-        url = f"http://{ip}:{port}/api/templates/list"
-        headers = {"X-API-Key": api_key} if api_key else {}
-
+    for coord in _iter_coordinators(hass):
+        url = f"http://{coord.ip}:{coord.port}/api/templates/list"
+        headers = _common_headers(coord.api_key)
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url, headers=headers, timeout=5) as response:
-                    if response.status == 200:
-                        result[name] = await response.json()
-                    else:
-                        result[name] = {"error": f"HTTP {response.status}"}
-        except aiohttp.ClientError as e:
-            result[name] = {"error": f"Connection failed: {e}"}
-        except Exception as e:
-            result[name] = {"error": str(e)}
+            async with session.get(
+                url,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=5),
+            ) as response:
+                if response.status == 200:
+                    result[coord.device_name] = await response.json()
+                else:
+                    result[coord.device_name] = {"error": f"HTTP {response.status}"}
+        except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+            result[coord.device_name] = {"error": f"Connection failed: {e}"}
 
     return result
 
@@ -305,10 +295,8 @@ def _valid_webhook_secret(hass: HomeAssistant, presented_secret: str | None) -> 
     """Return True iff the presented secret matches at least one configured entry."""
     if not presented_secret:
         return False
-    for entry_data in hass.data.get(DOMAIN, {}).values():
-        if not isinstance(entry_data, dict):
-            continue
-        expected = entry_data.get(CONF_WEBHOOK_SECRET)
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        expected = entry.data.get(CONF_WEBHOOK_SECRET)
         if expected and secrets.compare_digest(expected, presented_secret):
             return True
     return False
@@ -335,7 +323,6 @@ async def handle_webhook_log(hass: HomeAssistant, webhook_id: str, request: Requ
         level = data.get("level", "INFO")
         message = data.get("message", "No message")
 
-        # Button action: fire an HA event for automations
         if level == "ACTION" and message.startswith("BUTTON_CLICK:"):
             action_id = message.replace("BUTTON_CLICK:", "")
             hass.bus.async_fire("peekit_button_press", {"action": action_id})
@@ -351,7 +338,7 @@ async def handle_webhook_log(hass: HomeAssistant, webhook_id: str, request: Requ
         else:
             _LOGGER.info(log_msg)
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         _LOGGER.error("Webhook receive error peek-it: %s", e)
 
     return Response(text="Log received")

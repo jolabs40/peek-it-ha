@@ -1,10 +1,14 @@
 """Config flow for Peek-it [HA]."""
+import asyncio
 import logging
 import secrets
+
 import aiohttp
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.core import callback
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
+
 from .const import (
     DOMAIN,
     CONF_IP_ADDRESS,
@@ -13,14 +17,16 @@ from .const import (
     CONF_API_KEY,
     CONF_WEBHOOK_SECRET,
     DEFAULT_PORT,
+    HTTP_TIMEOUT_SECONDS,
+    STATUS_TIMEOUT_SECONDS,
 )
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def _generate_webhook_secret() -> str:
     """Generate a new URL-safe webhook secret."""
     return secrets.token_urlsafe(32)
-
-_LOGGER = logging.getLogger(__name__)
 
 
 class PeekItConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -38,7 +44,7 @@ class PeekItConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._async_abort_entries_match({CONF_IP_ADDRESS: host})
 
         # Test connection
-        result = await _test_connection(host, port)
+        result = await _test_connection(self.hass, host, port)
 
         self._discovered_ip = host
         self._discovered_port = port
@@ -66,6 +72,7 @@ class PeekItConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 CONF_WEBHOOK_SECRET: webhook_secret,
             }
             await _send_welcome_notification(
+                self.hass,
                 self._discovered_ip,
                 self._discovered_port,
                 "",
@@ -91,7 +98,7 @@ class PeekItConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             api_key = user_input.get(CONF_API_KEY, "")
             result = await _test_connection(
-                self._discovered_ip, self._discovered_port, api_key
+                self.hass, self._discovered_ip, self._discovered_port, api_key
             )
             if result == "ok":
                 name = user_input.get(CONF_NAME, self._discovered_name)
@@ -104,6 +111,7 @@ class PeekItConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     CONF_WEBHOOK_SECRET: webhook_secret,
                 }
                 await _send_welcome_notification(
+                    self.hass,
                     self._discovered_ip,
                     self._discovered_port,
                     api_key,
@@ -135,13 +143,13 @@ class PeekItConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             ip = user_input[CONF_IP_ADDRESS]
             port = user_input.get(CONF_PORT, DEFAULT_PORT)
             api_key = user_input.get(CONF_API_KEY, "")
-            result = await _test_connection(ip, port, api_key)
+            result = await _test_connection(self.hass, ip, port, api_key)
             if result == "ok":
                 name = user_input.get(CONF_NAME, "Android TV")
                 webhook_secret = _generate_webhook_secret()
                 data = {**user_input, CONF_WEBHOOK_SECRET: webhook_secret}
                 await _send_welcome_notification(
-                    ip, port, api_key, name, webhook_secret
+                    self.hass, ip, port, api_key, name, webhook_secret
                 )
                 return self.async_create_entry(title=name, data=data)
             elif result == "auth_required":
@@ -189,7 +197,7 @@ class PeekItOptionsFlow(config_entries.OptionsFlow):
             ip = user_input[CONF_IP_ADDRESS]
             port = user_input.get(CONF_PORT, DEFAULT_PORT)
             api_key = user_input.get(CONF_API_KEY, "")
-            result = await _test_connection(ip, port, api_key)
+            result = await _test_connection(self.hass, ip, port, api_key)
             if result == "ok":
                 name = user_input.get(CONF_NAME, "Living Room TV")
                 webhook_secret = self._entry.data.get(
@@ -197,7 +205,7 @@ class PeekItOptionsFlow(config_entries.OptionsFlow):
                 ) or _generate_webhook_secret()
                 new_data = {**user_input, CONF_WEBHOOK_SECRET: webhook_secret}
                 await _send_welcome_notification(
-                    ip, port, api_key, name, webhook_secret
+                    self.hass, ip, port, api_key, name, webhook_secret
                 )
                 self.hass.config_entries.async_update_entry(
                     self._entry, data=new_data
@@ -257,13 +265,17 @@ class PeekItOptionsFlow(config_entries.OptionsFlow):
         url = f"http://{ip}:{port}/api/templates/list"
         headers = {"X-API-Key": api_key} if api_key else {}
 
+        session = async_get_clientsession(self.hass)
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url, headers=headers, timeout=aiohttp.ClientTimeout(total=5)) as response:
-                    if response.status != 200:
-                        return f"HTTP Error {response.status}"
-                    data = await response.json()
-        except Exception as e:
+            async with session.get(
+                url,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=HTTP_TIMEOUT_SECONDS),
+            ) as response:
+                if response.status != 200:
+                    return f"HTTP Error {response.status}"
+                data = await response.json()
+        except (aiohttp.ClientError, asyncio.TimeoutError) as e:
             return f"Connection failed: {e}"
 
         sections = []
@@ -315,33 +327,45 @@ class PeekItOptionsFlow(config_entries.OptionsFlow):
         return line1
 
 
-async def _test_connection(ip, port, api_key=""):
+async def _test_connection(
+    hass: HomeAssistant, ip: str, port: int, api_key: str = ""
+) -> str:
     """Check if the app responds on the configured port.
-    Returns: 'ok', 'auth_required' or 'failed'.
-    Reads api_key_required and api_key_valid from /api/status.
+
+    Returns ``'ok'``, ``'auth_required'`` or ``'failed'``.
+    Reads ``api_key_required`` and ``api_key_valid`` from ``/api/status``.
     """
     url = f"http://{ip}:{port}/api/status"
     headers = {"X-API-Key": api_key} if api_key else {}
+    session = async_get_clientsession(hass)
     try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, headers=headers, timeout=aiohttp.ClientTimeout(total=3)) as response:
-                if response.status in (401, 403):
+        async with session.get(
+            url,
+            headers=headers,
+            timeout=aiohttp.ClientTimeout(total=STATUS_TIMEOUT_SECONDS),
+        ) as response:
+            if response.status in (401, 403):
+                return "auth_required"
+            if response.status == 200:
+                data = await response.json()
+                key_required = data.get("api_key_required", False)
+                key_valid = data.get("api_key_valid", True)
+                if key_required and not key_valid:
                     return "auth_required"
-                if response.status == 200:
-                    data = await response.json()
-                    key_required = data.get("api_key_required", False)
-                    key_valid = data.get("api_key_valid", True)
-                    if key_required and not key_valid:
-                        return "auth_required"
-                    return "ok"
-                return "failed"
-    except Exception:
+                return "ok"
+            return "failed"
+    except (aiohttp.ClientError, asyncio.TimeoutError):
         return "failed"
 
 
 async def _send_welcome_notification(
-    ip, port, api_key: str = "", name: str = "TV", webhook_secret: str | None = None
-):
+    hass: HomeAssistant,
+    ip: str,
+    port: int,
+    api_key: str = "",
+    name: str = "TV",
+    webhook_secret: str | None = None,
+) -> None:
     """Send a welcome notification to the TV.
 
     The optional ``webhook_secret`` is shipped to the TV in a top-level field
@@ -425,10 +449,15 @@ async def _send_welcome_notification(
     if webhook_secret:
         payload["webhook_secret"] = webhook_secret
 
+    session = async_get_clientsession(hass)
     try:
-        async with aiohttp.ClientSession() as session:
-            async with session.post(url, json=payload, headers=headers, timeout=5) as response:
-                if response.status != 200:
-                    _LOGGER.warning("Welcome notification: HTTP %s", response.status)
-    except Exception as e:
+        async with session.post(
+            url,
+            json=payload,
+            headers=headers,
+            timeout=aiohttp.ClientTimeout(total=HTTP_TIMEOUT_SECONDS),
+        ) as response:
+            if response.status != 200:
+                _LOGGER.warning("Welcome notification: HTTP %s", response.status)
+    except (aiohttp.ClientError, asyncio.TimeoutError) as e:
         _LOGGER.warning("Welcome notification: %s", e)

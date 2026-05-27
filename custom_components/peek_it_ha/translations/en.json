@@ -90,6 +90,9 @@
       }
     },
     "binary_sensor": {
+      "status": {
+        "name": "Status"
+      },
       "permission_overlay": {
         "name": "Overlay Permission"
       },

@@ -2,9 +2,9 @@
   "config": {
     "step": {
       "user": {
-        "title": "A\u00f1adir Peek-it [HA]",
+        "title": "Añadir Peek-it [HA]",
         "data": {
-          "ip_address": "Direcci\u00f3n IP",
+          "ip_address": "Dirección IP",
           "port": "Puerto",
           "name": "Nombre",
           "api_key": "Clave API (opcional)"
@@ -12,14 +12,14 @@
       },
       "zeroconf_confirm": {
         "title": "Peek-it [TV] detectado",
-        "description": "Se encontr\u00f3 un dispositivo Peek-it [TV] en {host}:{port}",
+        "description": "Se encontró un dispositivo Peek-it [TV] en {host}:{port}",
         "data": {
           "name": "Nombre"
         }
       },
       "zeroconf_confirm_auth": {
         "title": "Peek-it [TV] detectado (clave API requerida)",
-        "description": "Se encontr\u00f3 un dispositivo Peek-it [TV] en {host}:{port}. Se requiere una clave API.",
+        "description": "Se encontró un dispositivo Peek-it [TV] en {host}:{port}. Se requiere una clave API.",
         "data": {
           "name": "Nombre",
           "api_key": "Clave API"
@@ -28,10 +28,10 @@
     },
     "error": {
       "cannot_connect": "No se puede conectar al Android TV",
-      "auth_required": "Android TV conectado pero la clave API falta o es inv\u00e1lida"
+      "auth_required": "Android TV conectado pero la clave API falta o es inválida"
     },
     "abort": {
-      "already_configured": "Este dispositivo ya est\u00e1 configurado",
+      "already_configured": "Este dispositivo ya está configurado",
       "cannot_connect": "No se puede conectar al dispositivo"
     }
   },
@@ -42,13 +42,13 @@
         "menu_options": {
           "settings": "Ajustes",
           "templates": "Plantillas",
-          "designer": "Dise\u00f1ador"
+          "designer": "Diseñador"
         }
       },
       "settings": {
         "title": "Ajustes",
         "data": {
-          "ip_address": "Direcci\u00f3n IP",
+          "ip_address": "Dirección IP",
           "port": "Puerto",
           "name": "Nombre",
           "api_key": "Clave API (opcional)"
@@ -59,13 +59,13 @@
         "description": "{templates_info}"
       },
       "designer": {
-        "title": "Dise\u00f1ador",
-        "description": "[Abrir el Dise\u00f1ador en una nueva pesta\u00f1a]({designer_url})"
+        "title": "Diseñador",
+        "description": "[Abrir el Diseñador en una nueva pestaña]({designer_url})"
       }
     },
     "error": {
       "cannot_connect": "No se puede conectar al TV",
-      "auth_required": "TV conectado pero la clave API falta o es inv\u00e1lida"
+      "auth_required": "TV conectado pero la clave API falta o es inválida"
     }
   },
   "entity": {
@@ -90,6 +90,9 @@
       }
     },
     "binary_sensor": {
+      "status": {
+        "name": "Estado"
+      },
       "permission_overlay": {
         "name": "Permiso Overlay"
       },
@@ -97,7 +100,7 @@
         "name": "Permiso Accesibilidad"
       },
       "permission_microphone": {
-        "name": "Permiso Micr\u00f3fono"
+        "name": "Permiso Micrófono"
       }
     }
   }

@@ -2,15 +2,27 @@
 
 Connexion ADB TCP directe via adb-shell (même IP que la config peek-it).
 """
+from __future__ import annotations
+
 import logging
 import os
 
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import CONF_IP_ADDRESS, CONF_NAME, PEEKIT_PACKAGE, PEEKIT_ACCESSIBILITY_COMPONENT, ADB_PORT
+from .const import (
+    ADB_PORT,
+    DOMAIN,
+    MANUFACTURER,
+    MODEL,
+    PEEKIT_ACCESSIBILITY_COMPONENT,
+    PEEKIT_PACKAGE,
+)
+from .coordinator import PeekItCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -22,17 +34,16 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Crée les 4 boutons ADB peek-it."""
-    ip = entry.data[CONF_IP_ADDRESS]
-    name = entry.data.get(CONF_NAME, "peek-it")
+    """Crée les 6 boutons ADB peek-it."""
+    coordinator: PeekItCoordinator = hass.data[DOMAIN][entry.entry_id]
 
     async_add_entities([
-        PeekItEnableAssistButton(hass, ip, name, entry.entry_id),
-        PeekItDisableAssistButton(hass, ip, name, entry.entry_id),
-        PeekItEnableOverlayButton(hass, ip, name, entry.entry_id),
-        PeekItDisableOverlayButton(hass, ip, name, entry.entry_id),
-        PeekItEnableAccessibilityButton(hass, ip, name, entry.entry_id),
-        PeekItDisableAccessibilityButton(hass, ip, name, entry.entry_id),
+        PeekItEnableAssistButton(coordinator),
+        PeekItDisableAssistButton(coordinator),
+        PeekItEnableOverlayButton(coordinator),
+        PeekItDisableOverlayButton(coordinator),
+        PeekItEnableAccessibilityButton(coordinator),
+        PeekItDisableAccessibilityButton(coordinator),
     ])
 
 
@@ -40,10 +51,19 @@ class PeekItAdbButton(ButtonEntity):
     """Classe de base pour les boutons ADB peek-it."""
 
     _attr_has_entity_name = True
+    _attr_entity_category = EntityCategory.CONFIG
 
-    def __init__(self, hass: HomeAssistant, ip: str, device_name: str, entry_id: str) -> None:
-        self._ip = ip
-        self._device_name = device_name
+    def __init__(self, coordinator: PeekItCoordinator) -> None:
+        self._coordinator = coordinator
+        self._ip = coordinator.ip
+        self._device_name = coordinator.device_name
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, coordinator.ip)},
+            name=coordinator.device_name,
+            manufacturer=MANUFACTURER,
+            model=MODEL,
+            configuration_url=coordinator.designer_url,
+        )
 
     def _key_path(self) -> str:
         """Chemin de la clé RSA ADB (stockée dans le répertoire HA)."""
@@ -90,7 +110,7 @@ class PeekItAdbButton(ButtonEntity):
             await self.hass.async_add_executor_job(device.close)
             return True
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — adb-shell raises various errors
             _LOGGER.error("Erreur ADB sur %s : %s", self._ip, e)
             return False
 
@@ -117,9 +137,9 @@ class PeekItEnableAssistButton(PeekItAdbButton):
     _attr_icon = "mdi:microphone"
     _attr_translation_key = "enable_assist"
 
-    def __init__(self, hass, ip, device_name, entry_id):
-        super().__init__(hass, ip, device_name, entry_id)
-        self._attr_unique_id = f"peek_it_enable_assist_{ip}"
+    def __init__(self, coordinator: PeekItCoordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = f"peek_it_enable_assist_{coordinator.ip}"
 
     async def async_press(self) -> None:
         ok = await self._run_adb([
@@ -135,9 +155,9 @@ class PeekItDisableAssistButton(PeekItAdbButton):
     _attr_icon = "mdi:microphone-off"
     _attr_translation_key = "disable_assist"
 
-    def __init__(self, hass, ip, device_name, entry_id):
-        super().__init__(hass, ip, device_name, entry_id)
-        self._attr_unique_id = f"peek_it_disable_assist_{ip}"
+    def __init__(self, coordinator: PeekItCoordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = f"peek_it_disable_assist_{coordinator.ip}"
 
     async def async_press(self) -> None:
         ok = await self._run_adb([
@@ -155,9 +175,9 @@ class PeekItEnableOverlayButton(PeekItAdbButton):
     _attr_icon = "mdi:picture-in-picture-top-right"
     _attr_translation_key = "enable_overlay"
 
-    def __init__(self, hass, ip, device_name, entry_id):
-        super().__init__(hass, ip, device_name, entry_id)
-        self._attr_unique_id = f"peek_it_enable_overlay_{ip}"
+    def __init__(self, coordinator: PeekItCoordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = f"peek_it_enable_overlay_{coordinator.ip}"
 
     async def async_press(self) -> None:
         ok = await self._run_adb([
@@ -173,9 +193,9 @@ class PeekItDisableOverlayButton(PeekItAdbButton):
     _attr_icon = "mdi:picture-in-picture-top-right-outline"
     _attr_translation_key = "disable_overlay"
 
-    def __init__(self, hass, ip, device_name, entry_id):
-        super().__init__(hass, ip, device_name, entry_id)
-        self._attr_unique_id = f"peek_it_disable_overlay_{ip}"
+    def __init__(self, coordinator: PeekItCoordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = f"peek_it_disable_overlay_{coordinator.ip}"
 
     async def async_press(self) -> None:
         ok = await self._run_adb([
@@ -193,9 +213,9 @@ class PeekItEnableAccessibilityButton(PeekItAdbButton):
     _attr_icon = "mdi:human"
     _attr_translation_key = "enable_accessibility"
 
-    def __init__(self, hass, ip, device_name, entry_id):
-        super().__init__(hass, ip, device_name, entry_id)
-        self._attr_unique_id = f"peek_it_enable_accessibility_{ip}"
+    def __init__(self, coordinator: PeekItCoordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = f"peek_it_enable_accessibility_{coordinator.ip}"
 
     async def async_press(self) -> None:
         cmd = (
@@ -216,9 +236,9 @@ class PeekItDisableAccessibilityButton(PeekItAdbButton):
     _attr_icon = "mdi:human-male-board-poll"
     _attr_translation_key = "disable_accessibility"
 
-    def __init__(self, hass, ip, device_name, entry_id):
-        super().__init__(hass, ip, device_name, entry_id)
-        self._attr_unique_id = f"peek_it_disable_accessibility_{ip}"
+    def __init__(self, coordinator: PeekItCoordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = f"peek_it_disable_accessibility_{coordinator.ip}"
 
     async def async_press(self) -> None:
         c = PEEKIT_ACCESSIBILITY_COMPONENT

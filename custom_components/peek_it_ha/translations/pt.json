@@ -4,7 +4,7 @@
       "user": {
         "title": "Adicionar Peek-it [HA]",
         "data": {
-          "ip_address": "Endere\u00e7o IP",
+          "ip_address": "Endereço IP",
           "port": "Porta",
           "name": "Nome",
           "api_key": "Chave API (opcional)"
@@ -18,8 +18,8 @@
         }
       },
       "zeroconf_confirm_auth": {
-        "title": "Peek-it [TV] detetado (chave API necess\u00e1ria)",
-        "description": "Um dispositivo Peek-it [TV] foi encontrado em {host}:{port}. \u00c9 necess\u00e1ria uma chave API.",
+        "title": "Peek-it [TV] detetado (chave API necessária)",
+        "description": "Um dispositivo Peek-it [TV] foi encontrado em {host}:{port}. É necessária uma chave API.",
         "data": {
           "name": "Nome",
           "api_key": "Chave API"
@@ -27,35 +27,35 @@
       }
     },
     "error": {
-      "cannot_connect": "N\u00e3o \u00e9 poss\u00edvel ligar ao Android TV",
-      "auth_required": "Android TV ligado mas a chave API est\u00e1 em falta ou \u00e9 inv\u00e1lida"
+      "cannot_connect": "Não é possível ligar ao Android TV",
+      "auth_required": "Android TV ligado mas a chave API está em falta ou é inválida"
     },
     "abort": {
-      "already_configured": "Este dispositivo j\u00e1 est\u00e1 configurado",
-      "cannot_connect": "N\u00e3o \u00e9 poss\u00edvel ligar ao dispositivo"
+      "already_configured": "Este dispositivo já está configurado",
+      "cannot_connect": "Não é possível ligar ao dispositivo"
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "Op\u00e7\u00f5es Peek-it [HA]",
+        "title": "Opções Peek-it [HA]",
         "menu_options": {
-          "settings": "Defini\u00e7\u00f5es",
+          "settings": "Definições",
           "templates": "Modelos",
           "designer": "Designer"
         }
       },
       "settings": {
-        "title": "Defini\u00e7\u00f5es",
+        "title": "Definições",
         "data": {
-          "ip_address": "Endere\u00e7o IP",
+          "ip_address": "Endereço IP",
           "port": "Porta",
           "name": "Nome",
           "api_key": "Chave API (opcional)"
         }
       },
       "templates": {
-        "title": "Modelos dispon\u00edveis",
+        "title": "Modelos disponíveis",
         "description": "{templates_info}"
       },
       "designer": {
@@ -64,8 +64,8 @@
       }
     },
     "error": {
-      "cannot_connect": "N\u00e3o \u00e9 poss\u00edvel ligar ao TV",
-      "auth_required": "TV ligado mas a chave API est\u00e1 em falta ou \u00e9 inv\u00e1lida"
+      "cannot_connect": "Não é possível ligar ao TV",
+      "auth_required": "TV ligado mas a chave API está em falta ou é inválida"
     }
   },
   "entity": {
@@ -90,14 +90,17 @@
       }
     },
     "binary_sensor": {
+      "status": {
+        "name": "Status"
+      },
       "permission_overlay": {
-        "name": "Permiss\u00e3o Overlay"
+        "name": "Permissão Overlay"
       },
       "permission_accessibility": {
-        "name": "Permiss\u00e3o Acessibilidade"
+        "name": "Permissão Acessibilidade"
       },
       "permission_microphone": {
-        "name": "Permiss\u00e3o Microfone"
+        "name": "Permissão Microfone"
       }
     }
   }

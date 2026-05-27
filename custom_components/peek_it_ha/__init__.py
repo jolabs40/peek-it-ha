@@ -9,6 +9,8 @@ from homeassistant.components import webhook, network
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse
 
+from homeassistant.helpers import issue_registry as ir
+
 from .const import (
     DOMAIN,
     WEBHOOK_ID,
@@ -19,6 +21,7 @@ from .const import (
     CONF_PORT,
     CONF_API_KEY,
     CONF_WEBHOOK_SECRET,
+    ISSUE_ANDROIDTV_MISSING,
 )
 from .coordinator import PeekItCoordinator
 from .http import async_post_json
@@ -100,19 +103,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
-    # Vérifier si l'intégration Android TV est configurée
+    # Repair issue: signale (sans bloquer) que l'intégration Android TV
+    # est recommandée pour les boutons ADB.
     if not hass.config_entries.async_entries("androidtv"):
-        from homeassistant.components.persistent_notification import async_create
-        async_create(
+        ir.async_create_issue(
             hass,
-            title="Peek-it [HA] — Android TV recommandé",
-            message=(
-                "L'intégration **Android TV** n'est pas configurée. "
-                "Elle est recommandée pour les boutons ADB (Assist, Overlay, Accessibilité). "
-                "Vous pouvez l'ajouter dans *Paramètres → Intégrations*."
-            ),
-            notification_id="peek_it_androidtv_recommendation",
+            DOMAIN,
+            ISSUE_ANDROIDTV_MISSING,
+            is_fixable=False,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key=ISSUE_ANDROIDTV_MISSING,
         )
+    else:
+        ir.async_delete_issue(hass, DOMAIN, ISSUE_ANDROIDTV_MISSING)
 
     return True
 

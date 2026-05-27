@@ -103,5 +103,11 @@
         "name": "Mikrofon-Berechtigung"
       }
     }
+  },
+  "issues": {
+    "androidtv_missing": {
+      "title": "Android TV-Integration empfohlen",
+      "description": "Die Android TV-Integration ist nicht konfiguriert. Sie wird empfohlen, um die ADB-Schaltflächen (Assist, Overlay, Eingabehilfen) von Peek-it [HA] zu aktivieren. Hinzufügen unter *Einstellungen → Geräte & Dienste → Integration hinzufügen → Android TV*."
+    }
   }
 }

@@ -1,0 +1,85 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [1.1.0] — 2026-05-27
+
+### ⚠ Breaking changes
+
+- **Webhook signature** — `/api/webhook/peek_it_debug` now requires a
+  per-entry secret in the `X-Peek-Secret` HTTP header. Requests without
+  the header (or with the wrong value) are rejected with HTTP 401.
+  - **Migration** — re-open *Settings → Devices & Services → Peek-it
+    [HA] → Configure → Settings* and click *Submit*. This pushes a new
+    welcome notification to the TV, which contains the new
+    `webhook_secret` so the Android client can persist it and use it
+    on every callback.
+  - Existing entries that have no secret yet get one auto-generated at
+    setup with a `WARNING` log inviting the same re-save.
+  - Companion change required on the Peek-it Android app
+    (`HaApiHandler`): store `webhook_secret` from the welcome payload
+    and send it on every `peek_it_debug` POST.
+
+### Added
+
+- `PeekItCoordinator` ([`coordinator.py`](custom_components/peek_it_ha/coordinator.py)):
+  a single `DataUpdateCoordinator` per TV polls `GET /api/status` every
+  30 s. All entities (connectivity sensor, 3 permission sensors, notify,
+  6 buttons) share that snapshot — one HTTP request per device per
+  interval, regardless of how many entities are exposed.
+- Shared HTTP helper ([`http.py`](custom_components/peek_it_ha/http.py))
+  reusing Home Assistant's managed `aiohttp` client session via
+  `async_get_clientsession()`, with a 2-retry backoff (1 s, 3 s) on
+  transient `ClientError`. Used by `notify`, `tts`, `tts_stop`.
+- `DeviceInfo` on every entity (identifiers `(DOMAIN, ip)`,
+  `manufacturer="jolabs40"`, `model="peek-it"`, `configuration_url=`
+  Designer URL) so the ~10 entities now group under a single peek-it
+  device card in Home Assistant.
+- `EntityCategory.CONFIG` on the 6 ADB setup buttons (Assist /
+  Overlay / Accessibility ×2).
+- New translation key `binary_sensor.status` for the connectivity
+  sensor — synced across EN/FR/DE/ES/PT/NL.
+- Repair issue `androidtv_missing` (warning severity, non-fixable)
+  shown in *Settings → Repairs* when the Android TV companion
+  integration is not configured.
+- `CHANGELOG.md`, `CLAUDE.md`, pytest suite under `tests/` with
+  `pytest-homeassistant-custom-component`.
+
+### Changed
+
+- Strict typing: `notify.async_send_message(message, title=None,
+  data=None)` is now `title: str | None = None, data: dict | None =
+  None` (PEP 484 conforming).
+- `binary_sensor.py` switched to `CoordinatorEntity` — no more
+  independent `aiohttp.ClientSession()` per entity per poll.
+- `notify.py`, `config_flow.py` (test_connection / welcome /
+  fetch_templates) and the four `__init__.py` services all use the
+  shared HA session.
+- The persistent notification "Android TV recommended" is replaced by
+  a proper Repair Issue.
+- Webhook is now registered once per integration (instead of once per
+  entry) — multiple TV entries no longer trip
+  `HomeAssistantError("Handler is already defined!")`.
+
+### Fixed
+
+- `notify.py`: bad type hint `title: str = None, data: dict = None`
+  rejected by strict mypy.
+- `__init__.py:async_unload_entry`: no longer drops the webhook on
+  every entry unload — it stays alive until the last entry leaves.
+
+## [1.0.0] — Initial release
+
+- `config_flow` with Zeroconf discovery (`_peekit._tcp.local.`) and
+  manual IP/port/API key.
+- 4 `binary_sensor` entities (status + 3 Android permissions).
+- 1 `NotifyEntity` with 3 modes (simple message, raw elements,
+  `template_id` + params).
+- 6 ADB `ButtonEntity` (Assist, Overlay, Accessibility — enable /
+  disable).
+- 4 services: `get_templates`, `notify`, `tts`, `tts_stop`.
+- Webhook `peek_it_debug` receiving `BUTTON_CLICK:*` events and log
+  forwarding.

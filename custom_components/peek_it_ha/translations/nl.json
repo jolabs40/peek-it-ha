@@ -103,5 +103,11 @@
         "name": "Microfoonmachtiging"
       }
     }
+  },
+  "issues": {
+    "androidtv_missing": {
+      "title": "Android TV-integratie aanbevolen",
+      "description": "De Android TV-integratie is niet geconfigureerd. Aanbevolen om de ADB-knoppen (Assist, Overlay, Toegankelijkheid) van Peek-it [HA] in te schakelen. Voeg toe via *Instellingen → Apparaten & Diensten → Integratie toevoegen → Android TV*."
+    }
   }
 }

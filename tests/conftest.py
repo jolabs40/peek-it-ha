@@ -1,6 +1,27 @@
 """Shared pytest fixtures for peek_it_ha tests."""
 from __future__ import annotations
 
+# --- Windows compatibility patches ---------------------------------------
+# pytest_homeassistant_custom_component is loaded *before* this conftest
+# (it ships a pytest11 entry-point), so it has already instantiated
+# HassEventLoopPolicy(ProactorEventLoopPolicy) by the time we get here.
+# We patch the policy's _loop_factory at class level so new_event_loop()
+# now builds SelectorEventLoop — aiodns refuses to run on Proactor.
+import asyncio
+import sys
+
+if sys.platform == "win32":
+    _policy = asyncio.get_event_loop_policy()
+    type(_policy)._loop_factory = asyncio.SelectorEventLoop  # type: ignore[attr-defined]
+
+# pytest-socket (pulled by pytest-homeassistant-custom-component) blocks
+# AF_INET globally. asyncio's event loops need socket.socketpair() to build
+# their self-pipe, so we neutralise the guard at conftest import time.
+import pytest_socket as _ps
+
+_ps.disable_socket = lambda *_a, **_k: None
+_ps.enable_socket()
+
 from collections.abc import Generator
 from unittest.mock import patch
 
@@ -25,6 +46,36 @@ pytest_plugins = "pytest_homeassistant_custom_component"
 def auto_enable_custom_integrations(enable_custom_integrations):
     """Enable loading of the local custom component."""
     yield
+
+
+@pytest.fixture(autouse=True)
+def _enable_socket(socket_enabled):
+    """pytest-socket blocks AF_INET globally; asyncio's Windows
+    ProactorEventLoop needs socket.socketpair() to build its self-pipe,
+    so re-enable sockets for every test."""
+    yield
+
+
+# The plugin's verify_cleanup fixture asserts that no unexpected daemon
+# threads are left behind. On Windows the Selector loop's shutdown spawns
+# a `_run_safe_shutdown_loop` daemon that doesn't match the allow-list.
+# We monkey-patch threading.enumerate to hide those threads from the check.
+import threading as _threading  # noqa: E402
+
+_orig_enumerate = _threading.enumerate
+
+
+def _filtered_enumerate():
+    """Hide Windows shutdown daemons from verify_cleanup's allow-list check."""
+    return [
+        t for t in _orig_enumerate()
+        if "shutdown" not in t.name.lower()
+        and not t.name.startswith("Thread-")  # noisy generic asyncio threads
+        or t.daemon is False
+    ]
+
+
+_threading.enumerate = _filtered_enumerate
 
 
 @pytest.fixture

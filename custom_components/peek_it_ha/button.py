@@ -87,7 +87,10 @@ class PeekItAdbButton(ButtonEntity):
             key_path = self._key_path()
 
             # Générer la paire de clés RSA au premier usage
-            if not os.path.exists(key_path):
+            exists = await self.hass.async_add_executor_job(
+                os.path.exists, key_path
+            )
+            if not exists:
                 _LOGGER.info("Génération de la clé ADB : %s", key_path)
                 await self.hass.async_add_executor_job(keygen, key_path)
 

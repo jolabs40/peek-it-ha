@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import logging
 
-from homeassistant.components.notify import NotifyEntity
 from homeassistant.components import network
+from homeassistant.components.notify import NotifyEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo

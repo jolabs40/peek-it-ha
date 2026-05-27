@@ -61,7 +61,7 @@ async def async_post_json(
                     body[:200],
                 )
                 return False, response.status, body
-        except (aiohttp.ClientError, asyncio.TimeoutError) as err:
+        except (TimeoutError, aiohttp.ClientError) as err:
             last_err = str(err)
             _LOGGER.debug(
                 "%s attempt %d on %s failed: %s", context, attempt, url, err

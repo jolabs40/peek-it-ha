@@ -8,7 +8,6 @@ entities are exposed.
 """
 from __future__ import annotations
 
-import asyncio
 import logging
 from datetime import timedelta
 from typing import Any
@@ -81,6 +80,6 @@ class PeekItCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     )
                 self.is_online = True
                 return await response.json()
-        except (aiohttp.ClientError, asyncio.TimeoutError) as err:
+        except (TimeoutError, aiohttp.ClientError) as err:
             self.is_online = False
             raise UpdateFailed(f"Connection error: {err}") from err

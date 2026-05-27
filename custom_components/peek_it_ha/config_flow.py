@@ -1,5 +1,4 @@
 """Config flow for Peek-it [HA]."""
-import asyncio
 import logging
 import secrets
 
@@ -10,13 +9,13 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import (
-    DOMAIN,
+    CONF_API_KEY,
     CONF_IP_ADDRESS,
     CONF_NAME,
     CONF_PORT,
-    CONF_API_KEY,
     CONF_WEBHOOK_SECRET,
     DEFAULT_PORT,
+    DOMAIN,
     HTTP_TIMEOUT_SECONDS,
     STATUS_TIMEOUT_SECONDS,
 )
@@ -275,7 +274,7 @@ class PeekItOptionsFlow(config_entries.OptionsFlow):
                 if response.status != 200:
                     return f"HTTP Error {response.status}"
                 data = await response.json()
-        except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+        except (TimeoutError, aiohttp.ClientError) as e:
             return f"Connection failed: {e}"
 
         sections = []
@@ -354,7 +353,7 @@ async def _test_connection(
                     return "auth_required"
                 return "ok"
             return "failed"
-    except (aiohttp.ClientError, asyncio.TimeoutError):
+    except (TimeoutError, aiohttp.ClientError):
         return "failed"
 
 
@@ -459,5 +458,5 @@ async def _send_welcome_notification(
         ) as response:
             if response.status != 200:
                 _LOGGER.warning("Welcome notification: HTTP %s", response.status)
-    except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+    except (TimeoutError, aiohttp.ClientError) as e:
         _LOGGER.warning("Welcome notification: %s", e)

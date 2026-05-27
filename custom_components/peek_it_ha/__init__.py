@@ -5,23 +5,22 @@ import logging
 import secrets
 
 from aiohttp.web import Request, Response
-from homeassistant.components import webhook, network
+from homeassistant.components import network, webhook
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse
-
 from homeassistant.helpers import issue_registry as ir
 
 from .const import (
-    DOMAIN,
-    WEBHOOK_ID,
-    WEBHOOK_SECRET_HEADER,
-    DEFAULT_PORT,
+    CONF_API_KEY,
     CONF_IP_ADDRESS,
     CONF_NAME,
     CONF_PORT,
-    CONF_API_KEY,
     CONF_WEBHOOK_SECRET,
+    DEFAULT_PORT,
+    DOMAIN,
     ISSUE_ANDROIDTV_MISSING,
+    WEBHOOK_ID,
+    WEBHOOK_SECRET_HEADER,
 )
 from .coordinator import PeekItCoordinator
 from .http import async_post_json
@@ -266,8 +265,6 @@ async def async_tts_stop(call: ServiceCall) -> None:
 
 async def async_get_templates(call: ServiceCall) -> dict:
     """Retrieve the template list from all configured devices."""
-    import asyncio  # local — only needed here
-
     import aiohttp
     from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
@@ -288,7 +285,7 @@ async def async_get_templates(call: ServiceCall) -> dict:
                     result[coord.device_name] = await response.json()
                 else:
                     result[coord.device_name] = {"error": f"HTTP {response.status}"}
-        except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+        except (TimeoutError, aiohttp.ClientError) as e:
             result[coord.device_name] = {"error": f"Connection failed: {e}"}
 
     return result

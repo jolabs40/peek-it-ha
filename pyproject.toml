@@ -22,6 +22,7 @@ target-version = "py312"
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "ASYNC"]
 ignore = [
-    "E501",   # line too long — managed by formatter
-    "B008",   # function default in arg (HA uses this pattern often)
+    "E501",     # line too long — managed by formatter
+    "B008",     # function default in arg (HA uses this pattern often)
+    "ASYNC109", # `timeout` arg here is the per-request HTTP timeout, not a deadline
 ]

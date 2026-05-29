@@ -185,3 +185,11 @@ cp -r custom_components/peek_it_ha H:/custom_components/
   https://developers.home-assistant.io/docs/core/entity/notify
 - `pytest-homeassistant-custom-component` :
   https://github.com/MatthewFlamm/pytest-homeassistant-custom-component
+
+---
+
+## 7. Charte graphique
+
+Ce projet fait partie de **peek-it-suite/**. Il n'a pas d'assets visuels propres dans `../design/` (Lovelace card utilise les CSS variables HA pour le theming), mais la charte graphique commune de la famille peek-it (palette IBM Carbon, typographie, logo guidelines) est dans `../design/charte-graphique/` et doit être respectée si on introduit des éléments visuels propres.
+
+Référence : `../design/README.md`.

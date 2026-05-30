@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] — 2026-05-30
+
+### Fixed
+
+- **Dépendance `adb-shell` manquante** : `manifest.json` déclarait
+  `requirements: []`, donc Home Assistant n'installait jamais la
+  bibliothèque utilisée par les 6 boutons ADB — ceux-ci échouaient
+  silencieusement. Ajout de `adb-shell==0.4.4`.
+
+### Added
+
+- `issue_tracker` dans le `manifest.json`.
+- Fichier `LICENSE` (MIT) — le badge et le lien du README étaient morts.
+- Assets `icon.png`, `icon@2x.png`, `logo.png`, `logo@2x.png`.
+
+### Changed
+
+- **Refonte de la documentation** (README EN/FR/DE/ES/NL/PT) :
+  mise en page « Designer-first », sections techniques repliées,
+  diacritiques corrigés, distinction app/intégration. Alignement de la
+  doc sur le contrat réel : entités exposées (4 capteurs + notify +
+  6 boutons ADB), types de widgets (`rect`/`hexagon`/`confetti`),
+  réponse `/api/status`, webhook `X-Peek-Secret`, jeton d'accès HA,
+  installation via Google Play Store.
+
 ## [1.1.0] — 2026-05-27
 
 ### ⚠ Breaking changes

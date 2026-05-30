@@ -1,7 +1,7 @@
 # Peek-it [HA] — Home Assistant Integration
 
 <p align="center">
-  <img src="custom_components/peek_it_ha/icon@2x.png" alt="Peek-it [HA]" width="128"/>
+  <img src="https://raw.githubusercontent.com/jolabs40/peek-it-ha/master/custom_components/peek_it_ha/icon@2x.png" alt="Peek-it [HA]" width="128"/>
 </p>
 
 <p align="center">
@@ -20,24 +20,24 @@
 </p>
 
 <p align="center">
-  <a href="#-how-it-works">How it works</a> •
-  <a href="#-installation">Installation</a> •
-  <a href="#-the-designer">Designer</a> •
-  <a href="#-usage">Usage</a> •
-  <a href="#-text-to-speech-tts">TTS</a> •
-  <a href="#-automations">Automations</a> •
-  <a href="#-advanced-reference">Advanced reference</a> •
-  <a href="#-waf--the-ultimate-kpi">WAF</a>
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README.md#-how-it-works">How it works</a> •
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README.md#-installation">Installation</a> •
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README.md#-the-designer">Designer</a> •
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README.md#-usage">Usage</a> •
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README.md#-text-to-speech-tts">TTS</a> •
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README.md#-automations">Automations</a> •
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README.md#-advanced-reference">Advanced reference</a> •
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README.md#-waf--the-ultimate-kpi">WAF</a>
 </p>
 
 <p align="center">
   <b>Languages:</b>
   English |
-  <a href="README_FR.md">Fran&ccedil;ais</a> |
-  <a href="README_DE.md">Deutsch</a> |
-  <a href="README_ES.md">Espa&ntilde;ol</a> |
-  <a href="README_NL.md">Nederlands</a> |
-  <a href="README_PT.md">Portugu&ecirc;s</a>
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README_FR.md">Fran&ccedil;ais</a> |
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README_DE.md">Deutsch</a> |
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README_ES.md">Espa&ntilde;ol</a> |
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README_NL.md">Nederlands</a> |
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README_PT.md">Portugu&ecirc;s</a>
 </p>
 
 ---
@@ -102,7 +102,7 @@ data:
     camera_url: "rtsp://192.168.1.50:554/stream1"
 ```
 
-> ✅ **You almost never need to write JSON by hand.** The Designer handles the layout; on the Home Assistant side you only provide the template ID and a few values. The [Advanced reference](#-advanced-reference) (raw JSON, widget types, API…) is there only for edge cases.
+> ✅ **You almost never need to write JSON by hand.** The Designer handles the layout; on the Home Assistant side you only provide the template ID and a few values. The [Advanced reference](https://github.com/jolabs40/peek-it-ha/blob/master/README.md#-advanced-reference) (raw JSON, widget types, API…) is there only for edge cases.
 
 ---
 
@@ -165,7 +165,7 @@ All entities are grouped into a **single device card**. For each TV:
 | `binary_sensor.<name>_accessibility_permission` | Diagnostic | Accessibility service active |
 | `binary_sensor.<name>_microphone_permission` | Diagnostic | Microphone permission granted |
 | `notify.<name>` | Notify | Send notifications |
-| `button.<name>_*_assist / overlay / accessibility` | Config (×6) | Enable/disable permissions via ADB — see [ADB buttons](#-configuration-buttons-adb) |
+| `button.<name>_*_assist / overlay / accessibility` | Config (×6) | Enable/disable permissions via ADB — see [ADB buttons](https://github.com/jolabs40/peek-it-ha/blob/master/README.md#-configuration-buttons-adb) |
 
 A single `GET /api/status` request is issued per TV every 30 s; all entities share this snapshot (shared coordinator).
 </details>
@@ -262,7 +262,7 @@ data:
       style: { left: 62, top: 28, width: 34, height: 5, size: 18, color: "#FFFFFF", align: center }
 ```
 
-The full vocabulary (widget types, style properties) is documented in the [Advanced reference](#-advanced-reference).
+The full vocabulary (widget types, style properties) is documented in the [Advanced reference](https://github.com/jolabs40/peek-it-ha/blob/master/README.md#-advanced-reference).
 </details>
 
 ---
@@ -531,7 +531,7 @@ data:
 <details>
 <summary><b>HA entity widgets, charts & overlays (app capabilities)</b></summary>
 
-These features are configured on the **app** side (Designer); the HA integration does not drive them directly. They require an **HA long-lived access token** entered in the Designer (cf. [The Designer](#-the-designer)), since the app calls HA's API directly.
+These features are configured on the **app** side (Designer); the HA integration does not drive them directly. They require an **HA long-lived access token** entered in the Designer (cf. [The Designer](https://github.com/jolabs40/peek-it-ha/blob/master/README.md#-the-designer)), since the app calls HA's API directly.
 
 - **HA entity widget**: a `webview` connected over WebSocket/REST displays entity state in real time.
 - **HA charts**: area / line / bar, rendered in pure CSS/SVG.
@@ -618,8 +618,8 @@ The legendary **WAF** — *Wife Acceptance Factor*. That unofficial but absolute
 | The notification doesn't display | Check the overlay permission in the Android TV settings. |
 | The Designer won't connect | Same network? Try `http://IP:PORT/`. |
 | The TV button doesn't trigger HA | TV → HA callback = webhook: re-save the integration *Settings* (delivers the `webhook_secret`) and check that `ha_ip` is reachable from the TV. |
-| Menu toggles / entity widgets don't work | Direct app → HA call: create an HA **long-lived access token** and paste it into the Designer (see [The Designer](#-the-designer)). |
-| The ADB buttons fail | ADB debugging (port 5555) enabled and RSA key authorized? See [ADB buttons](#-configuration-buttons-adb). |
+| Menu toggles / entity widgets don't work | Direct app → HA call: create an HA **long-lived access token** and paste it into the Designer (see [The Designer](https://github.com/jolabs40/peek-it-ha/blob/master/README.md#-the-designer)). |
+| The ADB buttons fail | ADB debugging (port 5555) enabled and RSA key authorized? See [ADB buttons](https://github.com/jolabs40/peek-it-ha/blob/master/README.md#-configuration-buttons-adb). |
 | TTS won't speak | Is a TTS engine installed on the Android TV (Google TTS)? |
 | The menu doesn't respond to the D-pad | The menu element must have focus; use `duration: 0`. |
 
@@ -631,7 +631,7 @@ Contributions are welcome! Open an issue or a pull request on the [GitHub reposi
 
 ## License
 
-Project distributed under the MIT license. See the [LICENSE](LICENSE) file.
+Project distributed under the MIT license. See the [LICENSE](https://github.com/jolabs40/peek-it-ha/blob/master/LICENSE) file.
 
 ---
 

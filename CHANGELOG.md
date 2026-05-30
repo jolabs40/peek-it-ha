@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.2] — 2026-05-30
+
+### Fixed
+
+- **README dans HACS** : l'image d'en-tête et les liens (sommaire,
+  sélecteur de langue, renvois inter-sections) utilisaient des chemins
+  relatifs et des ancres `#…`, non gérés par le panneau d'information
+  HACS (image cassée, liens renvoyant vers `/hacs`). Tous convertis en
+  URL absolues GitHub (`raw.githubusercontent.com` pour l'image,
+  `github.com/.../blob/master/…` pour les liens) — fonctionnent
+  désormais sur GitHub *et* dans HACS. Appliqué aux 6 langues.
+
 ## [1.1.1] — 2026-05-30
 
 ### Fixed

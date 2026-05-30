@@ -1,7 +1,7 @@
 # Peek-it [HA] — Intégration Home Assistant
 
 <p align="center">
-  <img src="custom_components/peek_it_ha/icon@2x.png" alt="Peek-it [HA]" width="128"/>
+  <img src="https://raw.githubusercontent.com/jolabs40/peek-it-ha/master/custom_components/peek_it_ha/icon@2x.png" alt="Peek-it [HA]" width="128"/>
 </p>
 
 <p align="center">
@@ -20,24 +20,24 @@
 </p>
 
 <p align="center">
-  <a href="#-comment-ça-marche">Comment ça marche</a> •
-  <a href="#-installation">Installation</a> •
-  <a href="#-le-designer">Designer</a> •
-  <a href="#-utilisation">Utilisation</a> •
-  <a href="#-synthèse-vocale-tts">TTS</a> •
-  <a href="#-automatisations">Automatisations</a> •
-  <a href="#-référence-avancée">Référence avancée</a> •
-  <a href="#-waf--le-kpi-ultime">WAF</a>
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README_FR.md#-comment-ça-marche">Comment ça marche</a> •
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README_FR.md#-installation">Installation</a> •
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README_FR.md#-le-designer">Designer</a> •
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README_FR.md#-utilisation">Utilisation</a> •
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README_FR.md#-synthèse-vocale-tts">TTS</a> •
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README_FR.md#-automatisations">Automatisations</a> •
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README_FR.md#-référence-avancée">Référence avancée</a> •
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README_FR.md#-waf--le-kpi-ultime">WAF</a>
 </p>
 
 <p align="center">
   <b>Langues :</b>
-  <a href="README.md">English</a> |
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README.md">English</a> |
   Fran&ccedil;ais |
-  <a href="README_DE.md">Deutsch</a> |
-  <a href="README_ES.md">Espa&ntilde;ol</a> |
-  <a href="README_NL.md">Nederlands</a> |
-  <a href="README_PT.md">Portugu&ecirc;s</a>
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README_DE.md">Deutsch</a> |
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README_ES.md">Espa&ntilde;ol</a> |
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README_NL.md">Nederlands</a> |
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README_PT.md">Portugu&ecirc;s</a>
 </p>
 
 ---
@@ -102,7 +102,7 @@ data:
     camera_url: "rtsp://192.168.1.50:554/stream1"
 ```
 
-> ✅ **Vous n'avez quasiment jamais besoin d'écrire du JSON à la main.** Le Designer s'occupe de la mise en page ; côté Home Assistant vous ne fournissez que l'ID du template et quelques valeurs. La [Référence avancée](#-référence-avancée) (JSON brut, types de widgets, API…) n'est là que pour les cas pointus.
+> ✅ **Vous n'avez quasiment jamais besoin d'écrire du JSON à la main.** Le Designer s'occupe de la mise en page ; côté Home Assistant vous ne fournissez que l'ID du template et quelques valeurs. La [Référence avancée](https://github.com/jolabs40/peek-it-ha/blob/master/README_FR.md#-référence-avancée) (JSON brut, types de widgets, API…) n'est là que pour les cas pointus.
 
 ---
 
@@ -165,7 +165,7 @@ Toutes les entités sont regroupées dans une **seule carte d'appareil**. Pour c
 | `binary_sensor.<nom>_accessibility_permission` | Diagnostic | Service d'accessibilité actif |
 | `binary_sensor.<nom>_microphone_permission` | Diagnostic | Permission micro accordée |
 | `notify.<nom>` | Notify | Envoi de notifications |
-| `button.<nom>_*_assist / overlay / accessibility` | Config (×6) | Activer/désactiver les permissions via ADB — voir [Boutons ADB](#-boutons-de-configuration-adb) |
+| `button.<nom>_*_assist / overlay / accessibility` | Config (×6) | Activer/désactiver les permissions via ADB — voir [Boutons ADB](https://github.com/jolabs40/peek-it-ha/blob/master/README_FR.md#-boutons-de-configuration-adb) |
 
 Une seule requête `GET /api/status` est émise par TV toutes les 30 s ; toutes les entités partagent cet instantané (coordinateur mutualisé).
 </details>
@@ -262,7 +262,7 @@ data:
       style: { left: 62, top: 28, width: 34, height: 5, size: 18, color: "#FFFFFF", align: center }
 ```
 
-Le vocabulaire complet (types de widgets, propriétés de style) est documenté dans la [Référence avancée](#-référence-avancée).
+Le vocabulaire complet (types de widgets, propriétés de style) est documenté dans la [Référence avancée](https://github.com/jolabs40/peek-it-ha/blob/master/README_FR.md#-référence-avancée).
 </details>
 
 ---
@@ -531,7 +531,7 @@ data:
 <details>
 <summary><b>Widgets entité HA, graphiques & overlays (capacités de l'app)</b></summary>
 
-Ces fonctions sont configurées côté **app** (Designer) ; l'intégration HA ne les pilote pas directement. Elles nécessitent un **jeton d'accès longue durée HA** saisi dans le Designer (cf. [Le Designer](#-le-designer)), car l'app appelle l'API de HA directement.
+Ces fonctions sont configurées côté **app** (Designer) ; l'intégration HA ne les pilote pas directement. Elles nécessitent un **jeton d'accès longue durée HA** saisi dans le Designer (cf. [Le Designer](https://github.com/jolabs40/peek-it-ha/blob/master/README_FR.md#-le-designer)), car l'app appelle l'API de HA directement.
 
 - **Widget d'entité HA** : un `webview` connecté en WebSocket/REST affiche l'état d'entités en temps réel.
 - **Graphiques HA** : aire / ligne / barres, rendus en pur CSS/SVG.
@@ -618,8 +618,8 @@ Le légendaire **WAF** — *Wife Acceptance Factor*. Cette métrique non officie
 | La notification ne s'affiche pas | Vérifiez la permission d'overlay dans les paramètres Android TV. |
 | Le Designer ne se connecte pas | Même réseau ? Essayez `http://IP:PORT/`. |
 | Le bouton TV ne déclenche pas HA | Retour TV → HA = webhook : re-sauvegardez les *Paramètres* de l'intégration (transmet le `webhook_secret`) et vérifiez que `ha_ip` est joignable depuis la TV. |
-| Les toggles de menu / widgets d'entité ne marchent pas | Appel direct app → HA : créez un **jeton d'accès longue durée** HA et collez-le dans le Designer (voir [Le Designer](#-le-designer)). |
-| Les boutons ADB échouent | Débogage ADB (port 5555) activé et clé RSA autorisée ? Voir [Boutons ADB](#-boutons-de-configuration-adb). |
+| Les toggles de menu / widgets d'entité ne marchent pas | Appel direct app → HA : créez un **jeton d'accès longue durée** HA et collez-le dans le Designer (voir [Le Designer](https://github.com/jolabs40/peek-it-ha/blob/master/README_FR.md#-le-designer)). |
+| Les boutons ADB échouent | Débogage ADB (port 5555) activé et clé RSA autorisée ? Voir [Boutons ADB](https://github.com/jolabs40/peek-it-ha/blob/master/README_FR.md#-boutons-de-configuration-adb). |
 | Le TTS ne parle pas | Un moteur TTS est-il installé sur l'Android TV (Google TTS) ? |
 | Le menu ne répond pas au D-pad | L'élément menu doit avoir le focus ; utilisez `duration: 0`. |
 
@@ -631,7 +631,7 @@ Les contributions sont les bienvenues ! Ouvrez une issue ou une pull request sur
 
 ## Licence
 
-Projet distribué sous licence MIT. Voir le fichier [LICENSE](LICENSE).
+Projet distribué sous licence MIT. Voir le fichier [LICENSE](https://github.com/jolabs40/peek-it-ha/blob/master/LICENSE).
 
 ---
 

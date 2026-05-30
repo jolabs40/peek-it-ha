@@ -1,7 +1,7 @@
 # Peek-it [HA] — Home Assistant-integratie
 
 <p align="center">
-  <img src="custom_components/peek_it_ha/icon@2x.png" alt="Peek-it [HA]" width="128"/>
+  <img src="https://raw.githubusercontent.com/jolabs40/peek-it-ha/master/custom_components/peek_it_ha/icon@2x.png" alt="Peek-it [HA]" width="128"/>
 </p>
 
 <p align="center">
@@ -20,24 +20,24 @@
 </p>
 
 <p align="center">
-  <a href="#-hoe-het-werkt">Hoe het werkt</a> •
-  <a href="#-installatie">Installatie</a> •
-  <a href="#-de-designer">Designer</a> •
-  <a href="#-gebruik">Gebruik</a> •
-  <a href="#-spraaksynthese-tts">TTS</a> •
-  <a href="#-automatiseringen">Automatiseringen</a> •
-  <a href="#-geavanceerde-referentie">Geavanceerde referentie</a> •
-  <a href="#-waf--de-ultieme-kpi">WAF</a>
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README_NL.md#-hoe-het-werkt">Hoe het werkt</a> •
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README_NL.md#-installatie">Installatie</a> •
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README_NL.md#-de-designer">Designer</a> •
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README_NL.md#-gebruik">Gebruik</a> •
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README_NL.md#-spraaksynthese-tts">TTS</a> •
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README_NL.md#-automatiseringen">Automatiseringen</a> •
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README_NL.md#-geavanceerde-referentie">Geavanceerde referentie</a> •
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README_NL.md#-waf--de-ultieme-kpi">WAF</a>
 </p>
 
 <p align="center">
   <b>Talen:</b>
-  <a href="README.md">English</a> |
-  <a href="README_FR.md">Fran&ccedil;ais</a> |
-  <a href="README_DE.md">Deutsch</a> |
-  <a href="README_ES.md">Espa&ntilde;ol</a> |
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README.md">English</a> |
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README_FR.md">Fran&ccedil;ais</a> |
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README_DE.md">Deutsch</a> |
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README_ES.md">Espa&ntilde;ol</a> |
   Nederlands |
-  <a href="README_PT.md">Portugu&ecirc;s</a>
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README_PT.md">Portugu&ecirc;s</a>
 </p>
 
 ---
@@ -102,7 +102,7 @@ data:
     camera_url: "rtsp://192.168.1.50:554/stream1"
 ```
 
-> ✅ **U hoeft vrijwel nooit handmatig JSON te schrijven.** De Designer regelt de lay-out; aan de kant van Home Assistant levert u alleen de ID van de template en enkele waarden aan. De [Geavanceerde referentie](#-geavanceerde-referentie) (ruwe JSON, widgettypes, API…) is er alleen voor speciale gevallen.
+> ✅ **U hoeft vrijwel nooit handmatig JSON te schrijven.** De Designer regelt de lay-out; aan de kant van Home Assistant levert u alleen de ID van de template en enkele waarden aan. De [Geavanceerde referentie](https://github.com/jolabs40/peek-it-ha/blob/master/README_NL.md#-geavanceerde-referentie) (ruwe JSON, widgettypes, API…) is er alleen voor speciale gevallen.
 
 ---
 
@@ -165,7 +165,7 @@ Alle entiteiten worden gegroepeerd in **één enkele apparaatkaart**. Voor elke 
 | `binary_sensor.<naam>_accessibility_permission` | Diagnostiek | Toegankelijkheidsservice actief |
 | `binary_sensor.<naam>_microphone_permission` | Diagnostiek | Microfoonpermissie verleend |
 | `notify.<naam>` | Notify | Versturen van notificaties |
-| `button.<naam>_*_assist / overlay / accessibility` | Config (×6) | Permissies in-/uitschakelen via ADB — zie [ADB-knoppen](#-configuratieknoppen-adb) |
+| `button.<naam>_*_assist / overlay / accessibility` | Config (×6) | Permissies in-/uitschakelen via ADB — zie [ADB-knoppen](https://github.com/jolabs40/peek-it-ha/blob/master/README_NL.md#-configuratieknoppen-adb) |
 
 Per TV wordt om de 30 s slechts één `GET /api/status`-verzoek verstuurd; alle entiteiten delen deze momentopname (gedeelde coördinator).
 </details>
@@ -262,7 +262,7 @@ data:
       style: { left: 62, top: 28, width: 34, height: 5, size: 18, color: "#FFFFFF", align: center }
 ```
 
-De volledige woordenschat (widgettypes, stijleigenschappen) wordt gedocumenteerd in de [Geavanceerde referentie](#-geavanceerde-referentie).
+De volledige woordenschat (widgettypes, stijleigenschappen) wordt gedocumenteerd in de [Geavanceerde referentie](https://github.com/jolabs40/peek-it-ha/blob/master/README_NL.md#-geavanceerde-referentie).
 </details>
 
 ---
@@ -531,7 +531,7 @@ data:
 <details>
 <summary><b>HA-entiteitwidgets, grafieken & overlays (app-mogelijkheden)</b></summary>
 
-Deze functies worden geconfigureerd aan de kant van de **app** (Designer); de HA-integratie bestuurt ze niet rechtstreeks. Ze vereisen een **langlevend toegangstoken (Long-Lived Access Token) van HA** dat in de Designer is ingevoerd (zie [De Designer](#-de-designer)), want de app roept de API van HA rechtstreeks aan.
+Deze functies worden geconfigureerd aan de kant van de **app** (Designer); de HA-integratie bestuurt ze niet rechtstreeks. Ze vereisen een **langlevend toegangstoken (Long-Lived Access Token) van HA** dat in de Designer is ingevoerd (zie [De Designer](https://github.com/jolabs40/peek-it-ha/blob/master/README_NL.md#-de-designer)), want de app roept de API van HA rechtstreeks aan.
 
 - **HA-entiteitwidget**: een `webview` verbonden via WebSocket/REST geeft de status van entiteiten in realtime weer.
 - **HA-grafieken**: vlak / lijn / staven, weergegeven in pure CSS/SVG.
@@ -618,8 +618,8 @@ De legendarische **WAF** — *Wife Acceptance Factor*. Die niet-officiële maar 
 | De notificatie verschijnt niet | Controleer de overlay-permissie in de Android TV-instellingen. |
 | De Designer maakt geen verbinding | Zelfde netwerk? Probeer `http://IP:PORT/`. |
 | De TV-knop activeert HA niet | Terugkoppeling TV → HA = webhook: sla de *Instellingen* van de integratie opnieuw op (geeft het `webhook_secret` door) en controleer of `ha_ip` bereikbaar is vanaf de TV. |
-| De menuschakelaars / entiteitwidgets werken niet | Rechtstreekse aanroep app → HA: maak een **langlevend toegangstoken (Long-Lived Access Token)** van HA aan en plak het in de Designer (zie [De Designer](#-de-designer)). |
-| De ADB-knoppen mislukken | ADB-debugging (poort 5555) ingeschakeld en RSA-sleutel geautoriseerd? Zie [ADB-knoppen](#-configuratieknoppen-adb). |
+| De menuschakelaars / entiteitwidgets werken niet | Rechtstreekse aanroep app → HA: maak een **langlevend toegangstoken (Long-Lived Access Token)** van HA aan en plak het in de Designer (zie [De Designer](https://github.com/jolabs40/peek-it-ha/blob/master/README_NL.md#-de-designer)). |
+| De ADB-knoppen mislukken | ADB-debugging (poort 5555) ingeschakeld en RSA-sleutel geautoriseerd? Zie [ADB-knoppen](https://github.com/jolabs40/peek-it-ha/blob/master/README_NL.md#-configuratieknoppen-adb). |
 | De TTS spreekt niet | Is er een TTS-engine geïnstalleerd op de Android TV (Google TTS)? |
 | Het menu reageert niet op de D-pad | Het menu-element moet de focus hebben; gebruik `duration: 0`. |
 
@@ -631,7 +631,7 @@ Bijdragen zijn welkom! Open een issue of een pull request op de [GitHub-reposito
 
 ## Licentie
 
-Project gedistribueerd onder de MIT-licentie. Zie het bestand [LICENSE](LICENSE).
+Project gedistribueerd onder de MIT-licentie. Zie het bestand [LICENSE](https://github.com/jolabs40/peek-it-ha/blob/master/LICENSE).
 
 ---
 

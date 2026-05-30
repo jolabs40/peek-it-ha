@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.4] — 2026-05-30
+
+### Changed
+
+- **README transformé en vitrine** : `info.md` n'étant plus rendu par
+  HACS depuis la 2.0, le `README.md` (affiché par HACS) devient une page
+  de présentation courte qui renvoie vers la documentation complète sur
+  GitHub. La doc complète anglaise est déplacée dans `README_EN.md`.
+- Le guide complet existe désormais par langue : `README_EN.md`,
+  `README_FR.md`, `README_DE.md`, `README_ES.md`, `README_NL.md`,
+  `README_PT.md`. Le lien « English » des sélecteurs pointe vers
+  `README_EN.md`.
+- `hacs.json` : `render_readme` rétabli ; `info.md` supprimé.
+
 ## [1.1.3] — 2026-05-30
 
 ### Added

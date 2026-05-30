@@ -32,7 +32,7 @@
 
 <p align="center">
   <b>Langues :</b>
-  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README.md">English</a> |
+  <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README_EN.md">English</a> |
   Fran&ccedil;ais |
   <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README_DE.md">Deutsch</a> |
   <a href="https://github.com/jolabs40/peek-it-ha/blob/master/README_ES.md">Espa&ntilde;ol</a> |

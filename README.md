@@ -6,7 +6,7 @@
 
 <p align="center">
   <strong>Turn your Android TV into a smart notification display.</strong><br/>
-  Alerts, cameras, dashboards, TTS, menus — overlay on your TV in real time.
+  Alerts, cameras, dashboards, TTS, menus — overlaid on your TV in real time.
 </p>
 
 <p align="center">
@@ -14,19 +14,19 @@
   <a href="https://github.com/jolabs40/peek-it-ha"><img src="https://img.shields.io/github/stars/jolabs40/peek-it-ha?style=for-the-badge&color=yellow" alt="Stars"/></a>
   <a href="https://github.com/jolabs40/peek-it-ha/blob/master/LICENSE"><img src="https://img.shields.io/github/license/jolabs40/peek-it-ha?style=for-the-badge&color=green" alt="License"/></a>
   <a href="https://github.com/hacs/integration"><img src="https://img.shields.io/badge/HACS-Custom-orange?style=for-the-badge" alt="HACS"/></a>
+  <a href="https://play.google.com/store/apps/details?id=net.jolabs40.peekit"><img src="https://img.shields.io/badge/Google%20Play-Peek--it%20[TV]-414141?style=for-the-badge&logo=googleplay&logoColor=white" alt="Google Play"/></a>
   <img src="https://img.shields.io/badge/Android%20TV-Compatible-brightgreen?style=for-the-badge&logo=android" alt="Android TV"/>
   <img src="https://img.shields.io/badge/Home%20Assistant-Integration-41BDF5?style=for-the-badge&logo=homeassistant&logoColor=white" alt="Home Assistant"/>
 </p>
 
 <p align="center">
+  <a href="#-how-it-works">How it works</a> •
   <a href="#-installation">Installation</a> •
-  <a href="#-usage">Usage</a> •
   <a href="#-the-designer">Designer</a> •
-  <a href="#-templates--parameters">Templates</a> •
+  <a href="#-usage">Usage</a> •
   <a href="#-text-to-speech-tts">TTS</a> •
-  <a href="#-sound">Sound</a> •
-  <a href="#-interactive-menu">Menu</a> •
   <a href="#-automations">Automations</a> •
+  <a href="#-advanced-reference">Advanced reference</a> •
   <a href="#-waf--the-ultimate-kpi">WAF</a>
 </p>
 
@@ -46,151 +46,160 @@
 
 Your Android TV device is plugged into your TV 24/7. Why not put it to work?
 
-**Peek-it [HA]** is the Home Assistant integration for the **Peek-it [TV]** Android app. Together, they display **rich overlay notifications** on top of any running application. Watching a movie? A camera feed pops up for 5 seconds in the corner. Sports night? The score updates in real time. Doorbell rings? The front door camera appears instantly.
+The **Peek-it [TV]** app displays **rich overlay notifications** on top of whatever app is currently running: a movie, broadcast TV, a game... Watching a match? The score updates in a corner. Someone rings the doorbell? The front-door camera appears instantly. And **you design** these displays yourself, without writing a single line of code.
+
+> 💡 **The key takeaway**
+>
+> 1. **You design** your notifications (and even entire pages) in the **Designer**, a visual drag-and-drop editor accessible from any browser. *It builds everything for you — you have nothing to code.*
+> 2. **You trigger** them from **Home Assistant** using this integration… or from **Tasker, Node-RED, Jeedom** or any other HTTP client, since the app exposes a simple local API.
+
+> 🧩 **Two components, two roles**
+> The **Peek-it [TV] app** (Android, on the Play Store) draws the overlay, hosts the Designer and the template engine: it is the authority.
+> The **Peek-it [HA] integration** (this repository) drives it from Home Assistant: sending notifications/TTS, monitoring status, button callbacks.
 
 ### What you can display
 
-| Type | Example |
+| | |
 |------|---------|
-| **Rich text** | Titles, messages, counters, weather |
-| **Images** | Photos, snapshots, logos, QR codes |
-| **RTSP video streams** | Live security cameras, ultra-low latency |
-| **Web pages** | HA dashboards, charts, weather widgets |
-| **SVG** | Vector icons, gauges, diagrams |
-| **Shapes** | Rectangles, ellipses, lines, arrows — build complete layouts |
-| **Interactive buttons** | TV remote-controlled, trigger HA automations |
-| **Interactive menus** | D-pad navigable menus with HA entity toggles |
-| **HA entity widgets** | Real-time entity state display via WebSocket/REST |
-| **HA charts** | CSS/SVG area, line, and bar charts |
-| **Text-to-speech** | Voice announcements on your TV |
+| 📝 **Rich text** | Titles, messages, counters, weather |
+| 🖼️ **Images** | Photos, snapshots, logos, QR codes |
+| 🎥 **RTSP video streams** | Live surveillance cameras, ultra-low latency |
+| 🌐 **Web pages** | HA dashboards, charts, weather widgets |
+| 🔺 **Shapes & SVG** | Rectangles, ellipses, hexagons, arrows, vector icons |
+| 🎮 **Buttons & menus** | Navigable by remote, trigger your HA automations |
+| 📊 **HA entities & charts** | Real-time state and history of entities |
+| 🔊 **Text-to-speech** | Voice announcements straight to the TV |
 
 ### Key features
 
 - **Zero latency** — native Android overlay, no streaming or casting
-- **Works with everything** — the overlay goes on top of any app
-- **Visual Designer** — create notifications with drag & drop from any browser
+- **Works with everything** — the overlay displays on top of any app
+- **Visual Designer** — create everything via drag-and-drop, real-time preview
 - **Reusable templates** — design once, reuse with dynamic parameters
-- **7 animations** — fade, slide, pop... independent entrance and exit effects
-- **Text-to-speech** — voice announcements directly on the TV
-- **Sound alerts** — play notification sounds alongside visuals
-- **Interactive menus** — D-pad navigable overlay menus with HA toggles
 - **Multi-device** — manage multiple TVs from a single HA instance
+- **Open** — drivable from HA, Tasker, Node-RED, Jeedom… via a local HTTP API
 - **6 languages** — EN, FR, DE, ES, NL, PT
 
 ---
 
-## Prerequisites
+## 🧩 How it works
 
-1. **An Android TV device** running the **Peek-it [TV]** app
-2. **Home Assistant** installed and running
-3. Both devices on the **same local network**
+Three steps, from visual to automation:
 
-### Install the Peek-it [TV] app
+| Step | Where | What you do |
+|------|-----|--------------------|
+| **1. Design** | 🎨 Designer (browser) | Drag and drop your elements onto a canvas calibrated to your TV. The Designer generates all the rendering for you. |
+| **2. Save** | 🎨 Designer | Save your creation as a reusable **template** (a simple ID is generated). |
+| **3. Trigger** | 🏠 Home Assistant | Call the template from an automation, in a few lines, with dynamic values. |
 
-> The app is not (yet) on the Play Store. Install it via sideload.
+```yaml
+# Step 3: trigger a template designed in the Designer
+service: peek_it_ha.notify
+data:
+  template_id: "70c3f0c7-ac0c-4b09-838a-e116ce9c9a11"
+  params:
+    title: "Security alert"
+    camera_url: "rtsp://192.168.1.50:554/stream1"
+```
 
-1. Download the APK from the [Releases page](https://github.com/jolabs40/peek-it-ha/releases)
-2. Transfer it to your device (USB drive, `adb install`, or a file manager app)
-3. Launch the app — it will request the overlay permission (display over other apps)
-4. Grant the permission — the service starts automatically
-5. Note the **IP address** shown on the main screen (e.g., `192.168.1.42`)
-6. Default port is **8081** (configurable in the app)
-
-> **Tip**: The service auto-starts on device boot. Plug it in, forget about it.
+> ✅ **You almost never need to write JSON by hand.** The Designer handles the layout; on the Home Assistant side you only provide the template ID and a few values. The [Advanced reference](#-advanced-reference) (raw JSON, widget types, API…) is there only for edge cases.
 
 ---
 
-## Installation
+## 📥 Installation
 
-### Method 1: HACS (recommended)
+### 1. Install the Peek-it [TV] app
 
-1. Open HACS in Home Assistant
-2. Go to **Integrations** > 3-dot menu > **Custom repositories**
-3. Add the repository URL: `https://github.com/jolabs40/peek-it-ha`
-4. Category: **Integration**
-5. Click **Peek-it [HA]** > **Download**
-6. **Restart Home Assistant**
+**Recommended — Google Play Store**: search for **"Peek-it"** in the Play Store on your Android TV, or open the listing:
+[play.google.com/store/apps/details?id=net.jolabs40.peekit](https://play.google.com/store/apps/details?id=net.jolabs40.peekit)
 
-### Method 2: Manual installation
+> Device without Play Store (some Android TV boxes, Fire TV…): sideload the APK from the [Releases page](https://github.com/jolabs40/peek-it-ha/releases) (USB stick, `adb install`, or a file manager).
 
-1. Copy the `peek_it_ha/` folder into your `custom_components/` directory:
-   ```
-   config/
-   └── custom_components/
-       └── peek_it_ha/
-           ├── __init__.py
-           ├── config_flow.py
-           ├── const.py
-           ├── manifest.json
-           ├── notify.py
-           ├── binary_sensor.py
-           ├── services.yaml
-           ├── strings.json
-           ├── translations/
-           │   ├── en.json
-           │   ├── fr.json
-           │   ├── de.json
-           │   ├── es.json
-           │   ├── nl.json
-           │   └── pt.json
-           ├── icon.png
-           ├── icon@2x.png
-           ├── logo.png
-           └── logo@2x.png
-   ```
-2. **Restart Home Assistant**
+Then, whichever method you used:
 
-### Adding the integration
+1. Launch the app — grant the **overlay permission** (display over other apps); the service starts automatically.
+2. Note the **IP address** shown on the main screen (e.g. `192.168.1.42`). Default port: **8081**.
 
-1. Go to **Settings** > **Devices & Services** > **Add Integration**
-2. Search for **Peek-it [HA]**
-3. Fill in:
-   - **IP Address**: your Android TV device IP (shown in the app)
-   - **Port**: `8081` (default)
-   - **Name**: a friendly name for your TV (e.g., "Living Room TV")
-   - **API Key**: if authentication is enabled on the TV app
-4. Submit — the integration tests the connection and configures itself
+### 2. Install the Home Assistant integration
 
-### What gets created automatically
+**Via HACS (recommended)**: HACS → *Integrations* → 3-dot menu → *Custom repositories* → add `https://github.com/jolabs40/peek-it-ha` (category *Integration*) → *Download* → **restart HA**.
+
+<details>
+<summary>Manual installation</summary>
+
+Copy the `peek_it_ha/` folder into `config/custom_components/`, then restart Home Assistant:
+
+```
+config/
+└── custom_components/
+    └── peek_it_ha/
+        ├── __init__.py
+        ├── binary_sensor.py
+        ├── button.py
+        ├── config_flow.py
+        ├── const.py
+        ├── coordinator.py
+        ├── http.py
+        ├── manifest.json
+        ├── notify.py
+        ├── services.yaml
+        ├── strings.json
+        ├── translations/  (en, fr, de, es, nl, pt)
+        └── icon.png / icon@2x.png / logo.png / logo@2x.png
+```
+</details>
+
+### 3. Add the integration
+
+*Settings → Devices & Services → Add Integration → Peek-it [HA]*. Enter the **IP**, the **port** (`8081`), a **name** and, if the TV app requires it, an **API key**. If the device is published via Zeroconf (`_peekit._tcp`), HA can also **discover it automatically**.
+
+<details>
+<summary>What is created automatically (HA entities)</summary>
+
+All entities are grouped into a **single device card**. For each TV:
 
 | Entity | Type | Description |
 |--------|------|-------------|
-| `binary_sensor.living_room_tv_status` | Binary Sensor | Connection status (online/offline), polls every 30s |
-| `notify.living_room_tv` | Notify | Notification sending entity |
+| `binary_sensor.<name>_status` | Connectivity | Online / offline (polled every 30 s); exposes the `designer_url` attribute |
+| `binary_sensor.<name>_overlay_permission` | Diagnostic | Overlay permission granted |
+| `binary_sensor.<name>_accessibility_permission` | Diagnostic | Accessibility service active |
+| `binary_sensor.<name>_microphone_permission` | Diagnostic | Microphone permission granted |
+| `notify.<name>` | Notify | Send notifications |
+| `button.<name>_*_assist / overlay / accessibility` | Config (×6) | Enable/disable permissions via ADB — see [ADB buttons](#-configuration-buttons-adb) |
 
-The `binary_sensor` also exposes a `designer_url` attribute with a direct link to the web Designer.
-
----
-
-## Integration options (gear icon)
-
-Click the **gear icon** on the Peek-it [HA] integration card to access 3 menus:
-
-### Settings
-
-Edit the IP, port, name or API key. The integration reloads automatically after saving.
-
-### Templates
-
-Browse all templates available on your TV, sorted by category:
-
-- **Official** — built-in templates shipped with the app
-- **Custom** — your finalized templates, each with a unique UUID
-- **Drafts** — work in progress, no ID assigned yet
-
-Each template shows its **name**, **ID** (copyable), and available **parameters**.
-
-### Designer
-
-Direct link to open the web Designer in a new tab. Handy for editing templates without leaving HA.
+A single `GET /api/status` request is issued per TV every 30 s; all entities share this snapshot (shared coordinator).
+</details>
 
 ---
 
-## Usage
+## 🎨 The Designer
 
-### Mode 1: Simple message
+**The heart of Peek-it.** This is where you create your notifications and pages — visually, without coding. It is a **web editor embedded in the app**, accessible from any browser on the local network:
 
-The quickest way — send a text message that appears at the bottom of the screen with a dark background.
+**URL**: `http://<TV_IP>:<PORT>/` (e.g. `http://192.168.1.42:8081/`) — also reachable via the `designer_url` attribute of the status sensor, or *gear icon → Designer* in the integration options.
+
+- **Drag and drop** your widgets onto a canvas calibrated to the actual resolution of your TV (16:9, 21:9…)
+- **Real-time JSON preview** — you watch the render being built
+- **Template library** — save, load, rename, export/import
+- **Dynamic parameters** — mark the variable elements (`paramKey`) to fill them from HA
+- **Configuration** of the default sound, the language, and the **HA access token** (see below)
+- **SEND buttons** (send to the TV) and **KILL** (close) to test immediately
+
+> 🔑 **Home Assistant access token (optional).** Some features require the app to call HA's API **directly**: toggling an entity from a menu, showing an entity's state in real time, drawing a history chart, or displaying a camera snapshot. For this, create a **long-lived access token** in HA (*your profile → at the very bottom → Long-Lived Access Tokens → Create*) and paste it into the Designer settings. It is stored encrypted on the TV. Not needed if you only send notifications from HA.
+>
+> Not to be confused with the **webhook secret** (`X-Peek-Secret`), which works in the other direction (TV button callbacks → HA) and which the integration manages **automatically**.
+
+> From HA, *gear icon → Templates* lists all your templates with their **ID** (copyable) and their **parameters**, sorted into *Official* / *Custom* / *Drafts*.
+
+---
+
+## 🚀 Usage
+
+Three ways to send, from the simplest to the most advanced. **The template mode is the most convenient**: it builds on your Designer creations.
+
+### Simple message
+
+Text displayed at the bottom of the screen on a dark background — ideal for a quick alert.
 
 ```yaml
 service: peek_it_ha.notify
@@ -200,16 +209,16 @@ data:
   duration: 8000
 ```
 
-### Mode 2: Template + parameters
+### Template + parameters *(recommended)*
 
-The most practical — reuse an existing template by injecting dynamic values.
+Reuse a template designed in the Designer by injecting dynamic values.
 
 ```yaml
 service: peek_it_ha.notify
 data:
   template_id: "70c3f0c7-ac0c-4b09-838a-e116ce9c9a11"
   params:
-    title: "Security Alert"
+    title: "Security alert"
     message: "Motion detected in the garden"
     camera_url: "rtsp://192.168.1.50:554/stream1"
   duration: 15000
@@ -217,16 +226,23 @@ data:
   animationOut: fade
 ```
 
-The server loads the template, replaces `{{placeholders}}` with `params` values, and displays the result.
+The server loads the template, replaces the `{{placeholders}}` with the values from `params`, and displays the result.
 
-**How to find the template_id?**
-- In the Designer: click the green "ID" badge on a template in the library
-- In HA: gear icon > Templates > copy the displayed ID
-- Via service: `peek_it_ha.get_templates` returns the full list
+### Close / keep a notification
 
-### Mode 3: Raw elements (full JSON)
+```yaml
+# Close immediately
+service: peek_it_ha.notify
+data:
+  action: CLOSE
+```
 
-The most flexible — define each widget manually.
+`duration: 0` keeps the notification on screen until an explicit `CLOSE` or a button press.
+
+<details>
+<summary><b>Advanced mode — raw elements (full JSON)</b></summary>
+
+For cases where you want to define each widget by hand, without going through a template. *In practice, the Designer does all of this visually.*
 
 ```yaml
 service: peek_it_ha.notify
@@ -236,384 +252,89 @@ data:
   animationIn: pop
   animationOut: slide_bottom
   elements:
-    - type: box
-      style:
-        left: 60
-        top: 5
-        width: 38
-        height: 30
-        bgColor: "#DD000000"
-        radius: 12
+    - type: rect
+      style: { left: 60, top: 5, width: 38, height: 30, bgColor: "#DD000000", radius: 12 }
     - type: image
       content: "http://192.168.1.10:8123/local/garden_camera.jpg"
-      style:
-        left: 62
-        top: 7
-        width: 34
-        height: 22
+      style: { left: 62, top: 7, width: 34, height: 22 }
     - type: text
-      content: "Garden Camera"
-      style:
-        left: 62
-        top: 28
-        width: 34
-        height: 5
-        size: 18
-        color: "#FFFFFF"
-        align: center
+      content: "Garden camera"
+      style: { left: 62, top: 28, width: 34, height: 5, size: 18, color: "#FFFFFF", align: center }
 ```
 
-### Close a notification
-
-```yaml
-service: peek_it_ha.notify
-data:
-  action: CLOSE
-```
-
-### Persistent (infinite) notification
-
-```yaml
-service: peek_it_ha.notify
-data:
-  message: "Waiting for confirmation..."
-  duration: 0
-```
-
-Duration `0` = the notification stays on screen until an explicit `CLOSE` or a button press.
+The full vocabulary (widget types, style properties) is documented in the [Advanced reference](#-advanced-reference).
+</details>
 
 ---
 
-## Text-to-speech (TTS)
+## 🔔 Text-to-speech (TTS)
 
-### Standalone TTS
-
-Send a voice message to all configured TVs:
+Make the TV speak, on its own or alongside a notification.
 
 ```yaml
+# Standalone TTS
 service: peek_it_ha.tts
 data:
   text: "Dinner is ready!"
   lang: "en"
-  speed: 1.0
-  pitch: 1.0
-  volume: 1.0
+  speed: 1.0     # 0.5 to 2.0
+  volume: 1.0    # 0.0 to 1.0
 ```
 
-### Stop TTS
-
 ```yaml
-service: peek_it_ha.tts_stop
-```
-
-### TTS with notification
-
-Combine a visual notification with a voice message:
-
-```yaml
+# TTS with a visual notification
 service: peek_it_ha.notify
 data:
   message: "Motion detected in the garden"
   title: "Security"
-  duration: 10000
   tts: "Motion detected in the garden"
   ttsLang: "en"
   ttsSpeed: 1.25
-  ttsVolume: 0.8
 ```
 
-### TTS parameters
+Stop playback: `service: peek_it_ha.tts_stop`. In `notify`, the fields are prefixed `tts`, `ttsLang`, `ttsSpeed`, `ttsPitch`, `ttsVolume`.
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `text` | string | — | Text to speak (standalone service) |
-| `lang` | string | `en` | Language code (en, fr, de, es, nl, pt) |
-| `speed` | float | `1.0` | Speech rate (0.5 to 2.0) |
-| `pitch` | float | `1.0` | Voice pitch (0.5 to 2.0) |
-| `volume` | float | `1.0` | Volume (0.0 to 1.0) |
-
-When used inside `peek_it_ha.notify`, the fields are prefixed: `tts`, `ttsLang`, `ttsSpeed`, `ttsPitch`, `ttsVolume`.
-
----
-
-## Sound
-
-Play a sound with your notification:
+## 🔊 Sound
 
 ```yaml
 service: peek_it_ha.notify
 data:
   message: "Package delivered"
-  title: "Doorbell"
   sound: "01_notify.wav"
-  soundVolume: 0.8
+  soundVolume: 0.8   # 0.0 to 1.0
 ```
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `sound` | string | — | Sound file name (e.g., "01_notify.wav") |
-| `soundVolume` | float | `1.0` | Volume (0.0 to 1.0) |
-
-The Peek-it [TV] app ships with built-in sounds and supports custom sound uploads via the Designer.
+The app ships with built-in sounds and accepts your custom sounds (via the Designer).
 
 ---
 
-## Interactive menu
+## 📺 Configuration buttons (ADB)
 
-The `menu` widget type creates a D-pad navigable overlay menu on the TV. Menus support sub-menus, HA entity toggles with real-time state polling, action callbacks, and close buttons.
+The integration exposes **6 buttons** (*Config* category) that drive the TV via **ADB over TCP**, to set in one click those permissions that are painful to enable with the remote:
 
-### Menu example via automation
+| Button | Action on the TV |
+|--------|------------------|
+| **Enable / Disable Assist** | Sets / restores Peek-it as the default assistant |
+| **Enable / Disable Overlay** | Grants / revokes the `SYSTEM_ALERT_WINDOW` permission |
+| **Enable / Disable Accessibility** | Enables / disables the `MenuKeyService` accessibility service |
 
-```yaml
-service: peek_it_ha.notify
-data:
-  duration: 0
-  elements:
-    - type: menu
-      content: >
-        {
-          "title": "Quick Controls",
-          "titleIcon": "mdi:menu",
-          "bgColor": "#1E1E1E",
-          "textColor": "#FFFFFF",
-          "accentColor": "#00E676",
-          "items": [
-            {"type": "submenu", "label": "Lights", "icon": "mdi:lightbulb-group", "children": [
-              {"type": "toggle", "label": "Living Room", "icon": "mdi:lightbulb", "entity_id": "light.living_room"},
-              {"type": "toggle", "label": "Kitchen", "icon": "mdi:lightbulb", "entity_id": "light.kitchen"},
-              {"type": "close", "label": "Back", "icon": "mdi:arrow-left"}
-            ]},
-            {"type": "action", "label": "Movie Mode", "icon": "mdi:movie", "action": "movie_mode"},
-            {"type": "close", "label": "Close", "icon": "mdi:close"}
-          ]
-        }
-      style:
-        left: 35
-        top: 10
-        width: 30
-        height: 80
-```
+<details>
+<summary>ADB prerequisites (one-time setup)</summary>
 
-### Menu item types
+The buttons use the `adb-shell` library (installed automatically by HA) and connect to the TV's IP on **port 5555**.
 
-| Type | Description |
-|------|-------------|
-| `action` | Triggers an HA event (`peekit_button_press`) with the specified `action` ID |
-| `submenu` | Opens a nested sub-menu with its own `children` items |
-| `toggle` | Toggles an HA entity (requires `entity_id`), polls state every 5s |
-| `text` | Informational text (non-interactive) |
-| `close` | Closes the menu |
+1. **Enable network ADB debugging**: *Settings → Device Preferences → About →* tap *Build* 7 times, then *Developer options →* **USB debugging** (and **Wireless debugging** if offered).
+2. **Authorize the RSA key on the first press**: an "Allow debugging?" dialog appears on the TV → check *Always allow*. The key is generated once and stored in `.storage/peek_it_adb_key`.
+3. The official **Android TV** integration is recommended (HA flags this in *Repairs*) for stable ADB management.
 
-### Navigation
-
-- **Up/Down**: navigate between items
-- **Right/Enter**: open a submenu
-- **Left/Back**: go back to parent menu
-- **Back on root**: close the menu
+If `adb-shell` is missing or the TV refuses the connection, the action fails with an error in the HA log.
+</details>
 
 ---
 
-## HA entity widget
+## 🤖 Automations
 
-Display real-time HA entity states directly on the TV using a `webview` widget connected via WebSocket or REST polling.
-
-```yaml
-service: peek_it_ha.notify
-data:
-  duration: 30000
-  elements:
-    - type: webview
-      content: "http://192.168.1.10:8123/lovelace/overview"
-      style:
-        left: 5
-        top: 5
-        width: 90
-        height: 90
-```
-
----
-
-## HA chart widget
-
-The Peek-it [TV] app supports CSS/SVG charts for displaying entity history. Chart types: **area**, **line**, and **bar**.
-
-Charts are rendered as pure CSS/SVG — no external libraries required. Configure them through the Designer's chart editor.
-
----
-
-## Overlay configuration
-
-### Clock overlay
-
-The Peek-it [TV] app can display a persistent clock overlay. Configure it via the Designer Settings or the `/api/config/clock` endpoint:
-
-- Enable/disable
-- Format (12h/24h)
-- Position, color, size, opacity
-
-### Dimming overlay
-
-A configurable background dimming layer. Configure via the Designer Settings or `/api/config/dimming`:
-
-- Enable/disable
-- Color, opacity
-
----
-
-## Available parameters
-
-### Main fields
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `action` | string | `DISPLAY` | `DISPLAY` to show, `CLOSE` to dismiss |
-| `duration` | int | `10000` | Duration in milliseconds (0 = infinite) |
-| `priority` | string | `normal` | `normal` or `urgent` |
-| `animationIn` | string | `fade` | Entrance animation |
-| `animationOut` | string | `fade` | Exit animation |
-| `template_id` | string | — | UUID of the template to use |
-| `params` | dict | — | Dynamic template parameters |
-| `elements` | list | — | Widget list (advanced mode) |
-| `message` | string | — | Simple text (simple mode) |
-| `title` | string | — | Title text (simple mode) |
-| `sound` | string | — | Sound file name |
-| `soundVolume` | float | `1.0` | Sound volume (0.0-1.0) |
-| `tts` | string | — | TTS text (read aloud with notification) |
-| `ttsLang` | string | `en` | TTS language code |
-| `ttsSpeed` | float | `1.0` | TTS speech rate (0.5-2.0) |
-| `ttsPitch` | float | `1.0` | TTS voice pitch (0.5-2.0) |
-| `ttsVolume` | float | `1.0` | TTS volume (0.0-1.0) |
-
-### Available animations
-
-| Name | Effect |
-|------|--------|
-| `none` | Instant, no animation |
-| `fade` | Fade in/out |
-| `slide_right` | Slide from/to the right |
-| `slide_left` | Slide from/to the left |
-| `slide_top` | Slide from/to the top |
-| `slide_bottom` | Slide from/to the bottom |
-| `pop` | Zoom/scale effect |
-
-### Widget types
-
-| Type | Description | Content (`content`) |
-|------|-------------|---------------------|
-| `text` | Static text | The text to display |
-| `button` | Interactive button (TV remote) | Button label |
-| `box` | Rectangle / container | — |
-| `circle` | Circle | — |
-| `ellipse` | Ellipse / oval | — |
-| `image` | Image (PNG, JPG, URL) | Image URL |
-| `video` | RTSP / HTTP video stream | Stream URL |
-| `webview` | Embedded web page | Page URL |
-| `svg` | SVG vector image | URL or SVG path |
-| `line` | Horizontal line | — |
-| `arrow` | Arrow (pointing right) | — |
-| `menu` | Interactive D-pad menu | JSON MenuConfig |
-
-### Style properties
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `left` | float | X position in % of screen (0-100) |
-| `top` | float | Y position in % of screen (0-100) |
-| `width` | float | Width in % of screen |
-| `height` | float | Height in % of screen |
-| `color` | string | Text color (hex, e.g., `#FFFFFF`) |
-| `bgColor` | string | Background color (hex with alpha, e.g., `#CC000000`) |
-| `size` | int | Font size |
-| `font` | string | Font family (Roboto, sans-serif, etc.) |
-| `weight` | string | Font weight (`normal`, `bold`) |
-| `align` | string | Alignment (`left`, `center`, `right`) |
-| `opacity` | float | Opacity (0.0 to 1.0) |
-| `radius` | int | Corner radius (pixels) |
-| `borderWidth` | int | Border thickness (pixels) |
-| `borderColor` | string | Border color (hex) |
-| `rotation` | float | Rotation in degrees |
-| `focusColor` | string | Border color when focused |
-| `focusBgColor` | string | Background color when focused |
-
-### Interaction properties (buttons)
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `focusable` | bool | Widget receives TV remote focus |
-| `directFocus` | bool | Widget gets focus on display |
-| `action` | string | `CLOSE` to dismiss, or custom ID for webhook |
-| `paramKey` | string | Links content to a template parameter |
-| `actionParamKey` | string | Links action to a template parameter |
-
----
-
-## The Designer
-
-The Designer is a **visual web editor** embedded in the Peek-it [TV] app. Access it from any browser on your local network.
-
-**URL**: `http://<TV_IP>:<PORT>/` (e.g., `http://192.168.1.42:8081/`)
-
-You can also access it via:
-- The `designer_url` attribute of the binary_sensor in HA
-- The gear icon > Designer in the integration options
-
-### Features
-
-- **11 widget types** — drag & drop onto a calibrated TV canvas
-- **Real-time JSON preview** — see the exact payload being built
-- **Template library** — save, load, rename, delete, export/import
-- **Parameter system** — define `paramKey` on widgets for dynamic content
-- **Auto-calibration** — adapts to your TV's real resolution (16:9, 21:9, etc.)
-- **Sound configuration** — default notification sound settings
-- **HA token configuration** — required for webhook callbacks
-- **Internationalization** — available in 6 languages (EN, FR, DE, ES, NL, PT)
-
-### Send and test
-
-- **SEND button** (blue) — sends the current layout to the TV immediately
-- **KILL button** (red) — closes the current notification
-- **JSON preview** (footer) — see the exact payload that will be sent
-
----
-
-## Templates & parameters
-
-### Concept
-
-A template is a reusable notification layout. Instead of sending 15 lines of JSON every time, you:
-
-1. **Create** the layout in the Designer (drag & drop)
-2. **Define parameters** (`paramKey`) on dynamic elements
-3. **Save** as Custom (UUID generated)
-4. **Use** the `template_id` + `params` in your automations
-
-### Retrieve the template list
-
-```yaml
-service: peek_it_ha.get_templates
-response_variable: result
-```
-
-Returns a dictionary per configured device:
-```json
-{
-  "Living Room TV": {
-    "official": [
-      { "filename": "demo.json", "id": "70c3f0c7-...", "params": ["title", "message"] }
-    ],
-    "custom": [
-      { "filename": "camera_alert.json", "id": "a1b2c3d4-...", "params": ["title", "camera_url"] }
-    ],
-    "draft": ["test_draft.json"]
-  }
-}
-```
-
----
-
-## Automations
-
-### Motion detection alert
+### Motion alert with camera
 
 ```yaml
 automation:
@@ -631,10 +352,9 @@ automation:
             camera_url: "rtsp://192.168.1.50:554/stream1"
           duration: 15000
           animationIn: slide_right
-          animationOut: fade
 ```
 
-### Morning weather briefing
+### Morning weather bulletin
 
 ```yaml
 automation:
@@ -650,55 +370,16 @@ automation:
       - service: peek_it_ha.notify
         data:
           message: "{{ states('weather.home') }} — {{ state_attr('weather.home', 'temperature') }}°C"
-          title: "Today's Weather"
-          duration: 10000
-          animationIn: fade
+          title: "Today's weather"
 ```
 
-### TTS announcement automation
+### Button callback to HA
+
+Pressing a notification button (remote) triggers an HA event:
 
 ```yaml
 automation:
-  - alias: "Doorbell TTS alert"
-    trigger:
-      - platform: state
-        entity_id: binary_sensor.doorbell
-        to: "on"
-    action:
-      - service: peek_it_ha.tts
-        data:
-          text: "Someone is at the front door"
-          lang: "en"
-          speed: 1.25
-          volume: 1.0
-```
-
-### Notification with sound
-
-```yaml
-automation:
-  - alias: "Laundry done alert"
-    trigger:
-      - platform: state
-        entity_id: sensor.washing_machine
-        to: "idle"
-    action:
-      - service: peek_it_ha.notify
-        data:
-          message: "The washing machine is done!"
-          title: "Laundry"
-          duration: 8000
-          sound: "08-notify.mp3"
-          soundVolume: 0.7
-```
-
-### Interactive buttons — feedback to HA
-
-When a user presses a button in a notification (via the TV remote), an HA event is fired:
-
-```yaml
-automation:
-  - alias: "TV Button - Lights off"
+  - alias: "TV button - Turn off lights"
     trigger:
       - platform: event
         event_type: peekit_button_press
@@ -710,63 +391,34 @@ automation:
           area_id: living_room
 ```
 
-### Persistent alert with dismiss button
+<details>
+<summary>Persistent alert with a close button (raw JSON)</summary>
 
 ```yaml
-automation:
-  - alias: "Water leak alert"
-    trigger:
-      - platform: state
-        entity_id: binary_sensor.water_leak
-        to: "on"
-    action:
-      - service: peek_it_ha.notify
-        data:
-          duration: 0
-          animationIn: pop
-          priority: urgent
-          tts: "Warning! Water leak detected!"
-          ttsLang: "en"
-          elements:
-            - type: box
-              style:
-                left: 20
-                top: 20
-                width: 60
-                height: 60
-                bgColor: "#EE990000"
-                radius: 20
-            - type: text
-              content: "WATER LEAK DETECTED"
-              style:
-                left: 25
-                top: 30
-                width: 50
-                height: 10
-                size: 40
-                color: "#FFFFFF"
-                weight: bold
-                align: center
-            - type: button
-              content: "Got it"
-              action: CLOSE
-              focusable: true
-              directFocus: true
-              style:
-                left: 35
-                top: 55
-                width: 30
-                height: 10
-                size: 24
-                color: "#FFFFFF"
-                bgColor: "#CC333333"
-                align: center
-                radius: 10
-                focusColor: "#FF6666"
-                focusBgColor: "#CC660000"
+service: peek_it_ha.notify
+data:
+  duration: 0
+  animationIn: pop
+  priority: urgent
+  tts: "Warning! Water leak detected!"
+  ttsLang: "en"
+  elements:
+    - type: rect
+      style: { left: 20, top: 20, width: 60, height: 60, bgColor: "#EE990000", radius: 20 }
+    - type: text
+      content: "WATER LEAK DETECTED"
+      style: { left: 25, top: 30, width: 50, height: 10, size: 40, color: "#FFFFFF", weight: bold, align: center }
+    - type: button
+      content: "Got it"
+      action: CLOSE
+      focusable: true
+      directFocus: true
+      style: { left: 35, top: 55, width: 30, height: 10, size: 24, color: "#FFFFFF", bgColor: "#CC333333", align: center, radius: 10, focusColor: "#FF6666", focusBgColor: "#CC660000" }
 ```
+</details>
 
-### RTSP camera feed
+<details>
+<summary>RTSP camera stream</summary>
 
 ```yaml
 service: peek_it_ha.notify
@@ -776,46 +428,154 @@ data:
   elements:
     - type: video
       content: "rtsp://192.168.1.50:554/stream1"
-      style:
-        left: 65
-        top: 5
-        width: 30
-        height: 25
-        radius: 8
+      style: { left: 65, top: 5, width: 30, height: 25, radius: 8 }
 ```
 
-The feed displays with ultra-low latency (~50ms) thanks to an optimized ExoPlayer setup.
+Ultra-low latency (~50 ms) thanks to an optimized ExoPlayer configuration.
+</details>
 
 ---
 
-## Services reference
+## 🧰 Advanced reference
 
-| Service | Description |
-|---------|-------------|
-| `peek_it_ha.notify` | Send notification to all configured devices |
-| `peek_it_ha.get_templates` | Retrieve template list from all devices |
-| `peek_it_ha.tts` | Send TTS to all configured devices |
-| `peek_it_ha.tts_stop` | Stop TTS on all configured devices |
+> 🛟 **You normally don't need this section.** The Designer builds your notifications visually and provides ready-to-use templates. What follows is only useful for the raw JSON mode, the API, or third-party integrations.
+
+<details>
+<summary><b>Parameters of the <code>notify</code> service</b></summary>
+
+| Parameter | Type | Default | Description |
+|-----------|------|--------|-------------|
+| `action` | string | `DISPLAY` | `DISPLAY` to show, `CLOSE` to close |
+| `duration` | int | `10000` | Duration in ms (0 = infinite) |
+| `priority` | string | `normal` | `normal` or `urgent` |
+| `animationIn` / `animationOut` | string | `fade` | See animations below |
+| `template_id` | string | — | UUID of the template to use |
+| `params` | dict | — | Dynamic values for the template |
+| `elements` | list | — | List of widgets (raw JSON mode) |
+| `message` / `title` | string | — | Simple message mode |
+| `sound` / `soundVolume` | string / float | — / `1.0` | Sound and volume (0.0-1.0) |
+| `tts` / `ttsLang` / `ttsSpeed` / `ttsPitch` / `ttsVolume` | — | — | TTS read with the notification |
+
+**Animations**: `none`, `fade`, `slide_right`, `slide_left`, `slide_top`, `slide_bottom`, `pop` (entry and exit are independent).
+</details>
+
+<details>
+<summary><b>Widget types</b></summary>
+
+The type is interpreted by the app. **Any unrecognized type (`text`, `message`, `title`, `button`…) is rendered as a text widget**; a `button` is distinguished by `focusable` + `action`. If `content` starts with `mdi:` (e.g. `mdi:home-assistant`), a **Material Design Icons** icon is displayed.
+
+| Type | Description | `content` |
+|------|-------------|-----------|
+| `text` | Static text (default type) | The text, or `mdi:<icon>` |
+| `button` | Interactive text (focusable, action) | Label |
+| `rect` | Rectangle / container | — |
+| `ellipse` | Ellipse / oval | — |
+| `hexagon` | Hexagon | — |
+| `circle` | Round container (image / MDI icon) | URL or `mdi:<icon>` |
+| `image` | PNG/JPG image | URL |
+| `video` | RTSP / HTTP stream | URL |
+| `webview` | Embedded web page | URL |
+| `svg` | Vector image | URL or path |
+| `line` / `arrow` | Line / arrow | — |
+| `confetti` | Full-screen confetti animation | — |
+| `menu` | Interactive D-pad menu | MenuConfig JSON |
+
+> Older examples using `type: box` still display (text fallback + `bgColor`), but the canonical rectangle type is `rect`.
+</details>
+
+<details>
+<summary><b>Style and interaction properties</b></summary>
+
+**Style**: `left`, `top`, `width`, `height` (in % of the screen, 0-100) · `color` · `bgColor` (hex with alpha) · `size` · `font` · `weight` (`normal`/`bold`) · `align` (`left`/`center`/`right`) · `opacity` · `radius` · `borderWidth` · `borderColor` · `rotation` · `focusColor` · `focusBgColor`.
+
+**Interaction (buttons)**: `focusable` (receives remote focus) · `directFocus` (focus on display) · `action` (`CLOSE` or a custom ID for the webhook) · `paramKey` (binds the content to a template parameter) · `actionParamKey` (binds the action to a parameter).
+</details>
+
+<details>
+<summary><b>Interactive menu (JSON config)</b></summary>
+
+The `menu` widget creates an overlay menu navigable with the D-pad (submenus, HA entity toggles, actions).
+
+```yaml
+service: peek_it_ha.notify
+data:
+  duration: 0
+  elements:
+    - type: menu
+      content: >
+        {
+          "title": "Quick controls",
+          "items": [
+            {"type": "submenu", "label": "Lights", "icon": "mdi:lightbulb-group", "children": [
+              {"type": "toggle", "label": "Living room", "entity_id": "light.living_room"},
+              {"type": "close", "label": "Back"}
+            ]},
+            {"type": "action", "label": "Movie mode", "action": "movie_mode"},
+            {"type": "close", "label": "Close"}
+          ]
+        }
+      style: { left: 35, top: 10, width: 30, height: 80 }
+```
+
+| Item type | Role |
+|------|-------------|
+| `action` | Triggers `peekit_button_press` with the `action` ID |
+| `submenu` | Opens a submenu (`children`) |
+| `toggle` | Toggles an HA entity (`entity_id`), state refreshed every 5 s |
+| `text` | Informational text |
+| `close` | Closes the menu |
+
+**Navigation**: Up/Down to navigate · Right/Enter to open a submenu · Left/Back to go back · Back at the root closes.
+</details>
+
+<details>
+<summary><b>HA entity widgets, charts & overlays (app capabilities)</b></summary>
+
+These features are configured on the **app** side (Designer); the HA integration does not drive them directly. They require an **HA long-lived access token** entered in the Designer (cf. [The Designer](#-the-designer)), since the app calls HA's API directly.
+
+- **HA entity widget**: a `webview` connected over WebSocket/REST displays entity state in real time.
+- **HA charts**: area / line / bar, rendered in pure CSS/SVG.
+- **Overlay clock** (`/api/config/clock`): 12h/24h format, position, color, opacity.
+- **Dimming** (`/api/config/dimming`): color and opacity of a background layer.
+</details>
+
+<details>
+<summary><b>API & webhook (for Tasker, Node-RED, Jeedom, developers)</b></summary>
+
+The app exposes a local HTTP API (port `8081`). If an API key is configured, **all** requests carry the `X-API-Key: <key>` header. This is the API that any HTTP client (Tasker, Node-RED, Jeedom…) can call.
+
+| Endpoint | Method | Usage |
+|---|---|---|
+| `/api/status` | GET | Status, permissions, resolution |
+| `/api/notify` | POST | Display / close a notification |
+| `/api/tts` · `/api/tts/stop` | POST | Text-to-speech |
+| `/api/templates/list` | GET | List of templates |
+
+**Response of `/api/status`**:
+```json
+{
+  "status": "online", "version": "v10.9", "device_name": "Living Room TV",
+  "api_key_required": false, "api_key_valid": true,
+  "screen": { "width": 1920, "height": 1080, "density": 1.0 },
+  "permissions": { "overlay": true, "accessibility": false, "microphone": true }
+}
+```
+
+**Webhook (callbacks from the TV → HA)**: `/api/webhook/peek_it_debug`. Since 1.1.0, every request must present the **`X-Peek-Secret`** header (otherwise HTTP 401). The secret is delivered to the TV via the **welcome notification** (`webhook_secret` field) when the entry is created/saved.
+
+| `level` | `message` | HA effect |
+|---------|-----------|----------|
+| `ACTION` | `BUTTON_CLICK:<id>` | Emits the `peekit_button_press` event `{ "action": "<id>" }` |
+| `ERROR` / `WARN` / `INFO` | text | Logged as `[PEEK-IT REPORT]` |
+
+> **Migration from 1.0.0**: *Configure → Settings → Validate* to push a new welcome notification containing the `webhook_secret`.
+</details>
 
 ---
 
-## Webhooks & events
+## 🌍 Multi-device & languages
 
-The integration listens for a webhook to receive logs and button actions from the TV.
-
-| HA Event | Trigger | Data |
-|----------|---------|------|
-| `peekit_button_press` | Button press on the TV | `{ "action": "button_id" }` |
-
-TV logs are forwarded to the HA logger with the prefix `[PEEK-IT REPORT]`.
-
----
-
-## Multi-device
-
-The integration supports **multiple devices**. Add each TV as a separate integration. The `peek_it_ha.notify`, `tts`, `tts_stop`, and `get_templates` services automatically send to **all configured devices**.
-
-To target a single device, use the specific `notify` entity:
+Add each TV as a separate integration. The `notify`, `tts`, `tts_stop` and `get_templates` services apply to **all devices**. To target a single TV:
 
 ```yaml
 service: notify.send_message
@@ -825,71 +585,43 @@ data:
   message: "Only on this TV"
 ```
 
----
-
-## Internationalization
-
-The integration and the Peek-it [TV] app support **6 languages**:
-
-| Code | Language |
-|------|----------|
-| `en` | English (default) |
-| `fr` | French |
-| `de` | German |
-| `es` | Spanish |
-| `nl` | Dutch |
-| `pt` | Portuguese |
-
-Language can be configured in the Designer settings or on the Peek-it [TV] app settings screen.
+The integration and the app are available in **6 languages**: `en` (default), `fr`, `de`, `es`, `nl`, `pt`. Configurable in the Designer or the app.
 
 ---
 
-## WAF — The Ultimate KPI
+## 😅 WAF — The ultimate KPI
 
-The legendary **WAF** — *Wife Acceptance Factor*. That unofficial yet critical metric that measures your partner's tolerance for your home automation experiments.
+The legendary **WAF** — *Wife Acceptance Factor*. That unofficial but absolutely crucial metric measuring your significant other's tolerance for your home-automation experiments.
 
-### Use cases that boost your WAF
+- 🧺 **Smart laundry**: "Laundry done!" appears discreetly during the movie. No more loads forgotten for 3 days. *(WAF: +23)*
+- ☀️ **Morning weather**: every day at 7:30 a.m., the weather on the kitchen TV. *(WAF: +15)*
+- 🔔 **Doorbell camera**: someone rings, the stream appears. Deliberation from the couch. Nobody got up. *(WAF: +38)*
+- ⚽ **Sports score**: a discreet "2 - 1, 78'" for 3 seconds in the corner. Nobody changed the channel. *(WAF: +52)*
 
-**Smart laundry**: a "Laundry done!" notification pops up discreetly during the movie. No more loads forgotten for 3 days.
+### The case that RUINS your WAF
 
-> *(WAF: +23 points)*
+🌙 **Debugging in production**: you test your notifications at 11 p.m. during the season finale. "Test 1", "Lorem ipsum", "AAAA IT WORKS!", a big black rectangle, then nothing...
 
-**Morning weather**: every day at 7:30 AM, the weather pops up on the kitchen TV.
+> *(WAF: -347. Estimated recovery: 3 weeks of good behavior. And a bouquet of flowers.)*
 
-> *(WAF: +15 points)*
-
-**Doorbell camera**: someone rings, the camera feed pops up on screen. Judgment call from the couch. Nobody had to get up.
-
-> *(WAF: +38 points)*
-
-**Sports score**: a discreet "2 - 1, 78'" appears for 3 seconds in the top-right corner. Everyone's happy. Nobody changed the channel.
-
-> *(WAF: +52 points)*
-
-### The use case that TANKS your WAF
-
-**Debugging in production**: you're testing your notifications at 11 PM while your partner watches the season finale.
-
-> *(WAF: -347 points. Estimated recovery: 3 weeks.)*
-
-**Pro tip**: test your automations BEFORE 9 PM. Or use the **KILL** button in the Designer.
+**Pro tip**: test BEFORE 9 p.m. Or use the **KILL** button in the Designer. It exists for a reason.
 
 ---
 
-## Troubleshooting
+## 🔧 Troubleshooting
 
 | Problem | Solution |
-|---------|----------|
-| Integration not found in HA | Make sure the folder is in `custom_components/peek_it_ha/`. Restart HA. |
-| "Cannot connect" on setup | Check the IP and port. The app must be running on the TV. Test `http://IP:8081/api/status` in a browser. |
-| Binary sensor always "offline" | Is the Peek-it [TV] app running? Does the service start on boot? |
-| Notification doesn't show | Check the overlay permission in Android TV settings. |
-| Designer won't connect | Make sure you're on the same network. Try `http://IP:PORT/` in your browser. |
-| Empty templates in gear menu | The TV must be powered on and reachable. Check the binary_sensor status. |
-| TV button doesn't trigger HA | Configure the HA token in the Designer (gear icon). Verify `ha_ip` is reachable from the TV. |
-| TTS doesn't speak | Check that a TTS engine is installed on the Android TV (Google TTS is usually pre-installed). |
-| No sound with notification | Verify the sound file exists (check via Designer settings). Some streaming apps may block audio mixing. |
-| Menu doesn't respond to D-pad | Ensure the menu element has focus. Set `duration: 0` so the menu stays open. |
+|----------|----------|
+| Integration not found | Folder in `custom_components/peek_it_ha/`? Restart HA. |
+| "Cannot connect" | Check IP/port. Test `http://IP:8081/api/status` in a browser. |
+| Sensor always "offline" | Is the app running? Does the service start at boot? |
+| The notification doesn't display | Check the overlay permission in the Android TV settings. |
+| The Designer won't connect | Same network? Try `http://IP:PORT/`. |
+| The TV button doesn't trigger HA | TV → HA callback = webhook: re-save the integration *Settings* (delivers the `webhook_secret`) and check that `ha_ip` is reachable from the TV. |
+| Menu toggles / entity widgets don't work | Direct app → HA call: create an HA **long-lived access token** and paste it into the Designer (see [The Designer](#-the-designer)). |
+| The ADB buttons fail | ADB debugging (port 5555) enabled and RSA key authorized? See [ADB buttons](#-configuration-buttons-adb). |
+| TTS won't speak | Is a TTS engine installed on the Android TV (Google TTS)? |
+| The menu doesn't respond to the D-pad | The menu element must have focus; use `duration: 0`. |
 
 ---
 
@@ -899,11 +631,11 @@ Contributions are welcome! Open an issue or a pull request on the [GitHub reposi
 
 ## License
 
-This project is distributed under the MIT License. See the [LICENSE](LICENSE) file for details.
+Project distributed under the MIT license. See the [LICENSE](LICENSE) file.
 
 ---
 
 <p align="center">
-  Made with coffee, too many YAML files, and an unreasonable love for overlays.<br/>
-  <strong>Peek-it [HA]</strong> — because your TV can do more than you think.
+  Made with coffee, way too many YAML files, and an unreasonable love of overlays.<br/>
+  <strong>Peek-it [HA]</strong> — because your TV can do a lot more than you think.
 </p>

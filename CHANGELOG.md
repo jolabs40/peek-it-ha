@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.5] — 2026-05-31
+
+### Changed
+
+- Retrait du fichier de notes de développement interne du dépôt public
+  (déplacé hors suivi Git). Aucun changement fonctionnel de l'intégration.
+
 ## [1.1.4] — 2026-05-30
 
 ### Changed
@@ -110,7 +117,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Repair issue `androidtv_missing` (warning severity, non-fixable)
   shown in *Settings → Repairs* when the Android TV companion
   integration is not configured.
-- `CHANGELOG.md`, `CLAUDE.md`, pytest suite under `tests/` with
+- `CHANGELOG.md`, pytest suite under `tests/` with
   `pytest-homeassistant-custom-component`.
 
 ### Changed

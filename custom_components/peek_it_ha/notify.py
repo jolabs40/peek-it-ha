@@ -9,6 +9,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
     DOMAIN,
@@ -30,12 +31,20 @@ async def async_setup_entry(
     async_add_entities([PeekItNotificationEntity(coordinator)])
 
 
-class PeekItNotificationEntity(NotifyEntity):
-    """Notify entity that POSTs structured payloads to the TV."""
+class PeekItNotificationEntity(CoordinatorEntity[PeekItCoordinator], NotifyEntity):
+    """Notify entity that POSTs structured payloads to the TV.
+
+    Hérite de ``CoordinatorEntity`` pour réécrire son état (et donc
+    réévaluer ``available``) à chaque poll ``/api/status`` : sans cette
+    souscription, ``available`` restait figé à sa valeur du setup et
+    l'entité pouvait afficher ``unavailable`` alors que le binary_sensor
+    de statut de la même TV était ``on``.
+    """
 
     _attr_has_entity_name = True
 
     def __init__(self, coordinator: PeekItCoordinator) -> None:
+        super().__init__(coordinator)
         self._coordinator = coordinator
         self._attr_name = None  # Use the device name
         self._attr_unique_id = f"peek_it_ha_sender_{coordinator.ip}"

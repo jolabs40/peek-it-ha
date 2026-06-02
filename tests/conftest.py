@@ -1,4 +1,7 @@
 """Shared pytest fixtures for peek_it_ha tests."""
+# ruff: noqa: E402 — les imports sont volontairement placés après les patches
+# de compatibilité Windows/socket ci-dessous (ils doivent s'exécuter avant
+# que pytest_homeassistant_custom_component ne crée sa boucle d'événements).
 from __future__ import annotations
 
 # --- Windows compatibility patches ---------------------------------------
@@ -38,7 +41,6 @@ from custom_components.peek_it_ha.const import (
     DOMAIN,
 )
 
-
 pytest_plugins = "pytest_homeassistant_custom_component"
 
 
@@ -60,7 +62,7 @@ def _enable_socket(socket_enabled):
 # threads are left behind. On Windows the Selector loop's shutdown spawns
 # a `_run_safe_shutdown_loop` daemon that doesn't match the allow-list.
 # We monkey-patch threading.enumerate to hide those threads from the check.
-import threading as _threading  # noqa: E402
+import threading as _threading
 
 _orig_enumerate = _threading.enumerate
 

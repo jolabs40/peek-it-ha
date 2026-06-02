@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from ipaddress import ip_address
-from unittest.mock import patch
 
 import pytest
 from homeassistant import config_entries, data_entry_flow

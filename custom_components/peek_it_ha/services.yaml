@@ -4,8 +4,16 @@ get_templates:
 
 notify:
   name: Send notification
-  description: Sends a notification to all configured Peek-it [TV] devices. Supports 3 modes — simple message, template_id + params, or full JSON elements.
+  description: Sends a rich notification to Peek-it [TV] devices (sound, TTS, animations, templates). By default it targets ALL configured TVs; use the Target field to send to specific ones. Supports 3 modes — simple message, template_id + params, or full JSON elements.
   fields:
+    target:
+      name: Target device(s)
+      description: Limit the notification to specific Peek-it [TV] device(s). Leave empty to send to ALL configured TVs (default — backwards compatible).
+      required: false
+      selector:
+        device:
+          integration: peek_it_ha
+          multiple: true
     message:
       name: Message
       description: Text to display (simple message mode).
@@ -171,8 +179,16 @@ notify:
 
 tts:
   name: Text-to-speech
-  description: Sends a text-to-speech message to all configured Peek-it [TV] devices.
+  description: Sends a text-to-speech message to Peek-it [TV] devices. By default it targets ALL configured TVs; use the Target field to send to specific ones.
   fields:
+    target:
+      name: Target device(s)
+      description: Limit the TTS to specific Peek-it [TV] device(s). Leave empty to send to ALL configured TVs (default).
+      required: false
+      selector:
+        device:
+          integration: peek_it_ha
+          multiple: true
     text:
       name: Text
       description: Text to speak aloud.
@@ -224,4 +240,13 @@ tts:
 
 tts_stop:
   name: Stop TTS
-  description: Stops any ongoing text-to-speech playback on all configured Peek-it [TV] devices.
+  description: Stops any ongoing text-to-speech playback on Peek-it [TV] devices. By default it targets ALL configured TVs; use the Target field to stop specific ones.
+  fields:
+    target:
+      name: Target device(s)
+      description: Limit the stop command to specific Peek-it [TV] device(s). Leave empty to stop on ALL configured TVs (default).
+      required: false
+      selector:
+        device:
+          integration: peek_it_ha
+          multiple: true

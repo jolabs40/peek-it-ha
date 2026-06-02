@@ -1,6 +1,7 @@
 """Peek-it [HA] integration setup with log forwarding and TTS services."""
 from __future__ import annotations
 
+import asyncio
 import logging
 import secrets
 
@@ -8,7 +9,7 @@ from aiohttp.web import Request, Response
 from homeassistant.components import network, webhook
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse
-from homeassistant.helpers import issue_registry as ir
+from homeassistant.helpers import device_registry as dr, issue_registry as ir
 
 from .const import (
     CONF_API_KEY,
@@ -148,119 +149,223 @@ def _common_headers(api_key: str) -> dict[str, str]:
     return {"X-API-Key": api_key} if api_key else {}
 
 
+def _select_coordinators(
+    hass: HomeAssistant, target: str | list[str] | None
+) -> list[PeekItCoordinator]:
+    """Résout un ``target`` optionnel vers les coordinators correspondants.
+
+    ``target`` accepte un device_id Home Assistant, un nom de device ou une
+    IP (str ou liste). Falsy → toutes les TV configurées (broadcast, le
+    comportement historique, donc rétrocompatible).
+    """
+    coordinators = list(_iter_coordinators(hass))
+    if not target:
+        return coordinators
+
+    wanted = {target} if isinstance(target, str) else set(target)
+    dev_reg = dr.async_get(hass)
+    selected: list[PeekItCoordinator] = []
+    for coord in coordinators:
+        ids = {coord.ip, coord.device_name}
+        device = dev_reg.async_get_device(identifiers={(DOMAIN, coord.ip)})
+        if device is not None:
+            ids.add(device.id)
+            if device.name:
+                ids.add(device.name)
+            if device.name_by_user:
+                ids.add(device.name_by_user)
+        if ids & wanted:
+            selected.append(coord)
+
+    if not selected:
+        _LOGGER.warning(
+            "Peek-it: aucune TV configurée ne correspond à target %s — rien envoyé",
+            target,
+        )
+    return selected
+
+
+def _online_targets(
+    coordinators: list[PeekItCoordinator], context: str
+) -> list[PeekItCoordinator]:
+    """Écarte les TV hors ligne (fail-fast) et renvoie celles en ligne.
+
+    S'appuie sur ``coordinator.is_online`` (déjà calculé par le poll
+    ``/api/status`` qui pilote le binary_sensor de statut) pour ne pas
+    bloquer l'appel de service sur une TV éteinte (~19 s de retries).
+    """
+    online = [c for c in coordinators if c.is_online]
+    skipped = [c.device_name for c in coordinators if not c.is_online]
+    if skipped:
+        _LOGGER.info(
+            "Peek-it: TV hors ligne ignorée(s) pour %s : %s",
+            context, ", ".join(skipped),
+        )
+    return online
+
+
+def _build_notify_payload(call_data: dict, ha_ip: str) -> dict:
+    """Construit le payload strict ``/api/notify`` (3 modes).
+
+    Identique pour chaque TV à l'exception de ``ha_ip`` (callback logs),
+    d'où l'extraction en fonction pure réutilisée par le fan-out.
+    """
+    payload: dict = {
+        "action": str(call_data.get("action", "DISPLAY")),
+        "duration": int(call_data.get("duration", 10000)),
+        "source": "HA",
+        "ha_ip": str(ha_ip),
+        "elements": [],
+    }
+
+    # Optional fields
+    if "priority" in call_data:
+        payload["priority"] = str(call_data["priority"])
+    if "animationIn" in call_data:
+        payload["animationIn"] = str(call_data["animationIn"])
+    if "animationOut" in call_data:
+        payload["animationOut"] = str(call_data["animationOut"])
+
+    if "sound" in call_data:
+        payload["sound"] = str(call_data["sound"])
+    if "soundVolume" in call_data:
+        payload["soundVolume"] = float(call_data["soundVolume"])
+
+    if "tts" in call_data:
+        payload["tts"] = str(call_data["tts"])
+    if "ttsLang" in call_data:
+        payload["ttsLang"] = str(call_data["ttsLang"])
+    if "ttsSpeed" in call_data:
+        payload["ttsSpeed"] = float(call_data["ttsSpeed"])
+    if "ttsPitch" in call_data:
+        payload["ttsPitch"] = float(call_data["ttsPitch"])
+    if "ttsVolume" in call_data:
+        payload["ttsVolume"] = float(call_data["ttsVolume"])
+
+    if "template_id" in call_data:
+        payload["template_id"] = str(call_data["template_id"])
+        if "params" in call_data and isinstance(call_data["params"], dict):
+            payload["params"] = {
+                str(k): str(v) for k, v in call_data["params"].items()
+            }
+    elif "elements" in call_data:
+        payload["elements"] = call_data["elements"]
+    elif "message" in call_data:
+        message = str(call_data["message"])
+        payload["elements"].append({
+            "type": "box",
+            "style": {"left": 0, "top": 80, "width": 100, "height": 20,
+                      "bgColor": "#CC000000"}
+        })
+        payload["elements"].append({
+            "type": "message", "content": message,
+            "style": {"left": 5, "top": 82, "width": 90, "height": 16,
+                      "size": 30, "color": "#FFFFFF", "align": "center"}
+        })
+        if "title" in call_data:
+            payload["elements"].append({
+                "type": "title", "content": str(call_data["title"]),
+                "style": {"left": 5, "top": 72, "width": 90, "height": 8,
+                          "size": 35, "color": "#3d7eff",
+                          "align": "center", "weight": "bold"}
+            })
+
+    return payload
+
+
+def _build_tts_payload(call_data: dict) -> dict:
+    """Construit le payload ``/api/tts`` (identique pour chaque TV)."""
+    return {
+        "text": str(call_data.get("text", "")),
+        "lang": str(call_data.get("lang", "en")),
+        "speed": float(call_data.get("speed", 1.0)),
+        "pitch": float(call_data.get("pitch", 1.0)),
+        "volume": float(call_data.get("volume", 1.0)),
+    }
+
+
+async def _notify_one(
+    hass: HomeAssistant, coord: PeekItCoordinator, call_data: dict
+) -> None:
+    ha_ip = await _resolve_ha_ip(hass, coord.ip)
+    await async_post_json(
+        hass,
+        f"http://{coord.ip}:{coord.port}/api/notify",
+        _build_notify_payload(call_data, ha_ip),
+        headers=_common_headers(coord.api_key),
+        context=f"notify {coord.device_name}",
+    )
+
+
+async def _tts_one(
+    hass: HomeAssistant, coord: PeekItCoordinator, call_data: dict
+) -> None:
+    await async_post_json(
+        hass,
+        f"http://{coord.ip}:{coord.port}/api/tts",
+        _build_tts_payload(call_data),
+        headers=_common_headers(coord.api_key),
+        context=f"tts {coord.device_name}",
+    )
+
+
+async def _tts_stop_one(hass: HomeAssistant, coord: PeekItCoordinator) -> None:
+    await async_post_json(
+        hass,
+        f"http://{coord.ip}:{coord.port}/api/tts/stop",
+        {},
+        headers=_common_headers(coord.api_key),
+        context=f"tts_stop {coord.device_name}",
+    )
+
+
 async def async_notify(call: ServiceCall) -> None:
-    """Send a notification to all configured devices."""
+    """Envoie une notification — à toutes les TV, ou à ``target`` si fourni.
+
+    Le fan-out est concurrent (``asyncio.gather``) : le coût total est celui
+    de la TV la plus lente, plus la somme. Les TV hors ligne sont écartées.
+    """
     hass = call.hass
     call_data = dict(call.data)
-
-    for coord in _iter_coordinators(hass):
-        url = f"http://{coord.ip}:{coord.port}/api/notify"
-        ha_ip = await _resolve_ha_ip(hass, coord.ip)
-
-        payload: dict = {
-            "action": str(call_data.get("action", "DISPLAY")),
-            "duration": int(call_data.get("duration", 10000)),
-            "source": "HA",
-            "ha_ip": str(ha_ip),
-            "elements": [],
-        }
-
-        # Optional fields
-        if "priority" in call_data:
-            payload["priority"] = str(call_data["priority"])
-        if "animationIn" in call_data:
-            payload["animationIn"] = str(call_data["animationIn"])
-        if "animationOut" in call_data:
-            payload["animationOut"] = str(call_data["animationOut"])
-
-        if "sound" in call_data:
-            payload["sound"] = str(call_data["sound"])
-        if "soundVolume" in call_data:
-            payload["soundVolume"] = float(call_data["soundVolume"])
-
-        if "tts" in call_data:
-            payload["tts"] = str(call_data["tts"])
-        if "ttsLang" in call_data:
-            payload["ttsLang"] = str(call_data["ttsLang"])
-        if "ttsSpeed" in call_data:
-            payload["ttsSpeed"] = float(call_data["ttsSpeed"])
-        if "ttsPitch" in call_data:
-            payload["ttsPitch"] = float(call_data["ttsPitch"])
-        if "ttsVolume" in call_data:
-            payload["ttsVolume"] = float(call_data["ttsVolume"])
-
-        if "template_id" in call_data:
-            payload["template_id"] = str(call_data["template_id"])
-            if "params" in call_data and isinstance(call_data["params"], dict):
-                payload["params"] = {
-                    str(k): str(v) for k, v in call_data["params"].items()
-                }
-        elif "elements" in call_data:
-            payload["elements"] = call_data["elements"]
-        elif "message" in call_data:
-            message = str(call_data["message"])
-            payload["elements"].append({
-                "type": "box",
-                "style": {"left": 0, "top": 80, "width": 100, "height": 20,
-                          "bgColor": "#CC000000"}
-            })
-            payload["elements"].append({
-                "type": "message", "content": message,
-                "style": {"left": 5, "top": 82, "width": 90, "height": 16,
-                          "size": 30, "color": "#FFFFFF", "align": "center"}
-            })
-            if "title" in call_data:
-                payload["elements"].append({
-                    "type": "title", "content": str(call_data["title"]),
-                    "style": {"left": 5, "top": 72, "width": 90, "height": 8,
-                              "size": 35, "color": "#3d7eff",
-                              "align": "center", "weight": "bold"}
-                })
-
-        await async_post_json(
-            hass,
-            url,
-            payload,
-            headers=_common_headers(coord.api_key),
-            context=f"notify {coord.device_name}",
-        )
+    coords = _online_targets(
+        _select_coordinators(hass, call_data.pop("target", None)), "notify"
+    )
+    if not coords:
+        return
+    await asyncio.gather(
+        *(_notify_one(hass, c, call_data) for c in coords),
+        return_exceptions=True,
+    )
 
 
 async def async_tts(call: ServiceCall) -> None:
-    """Send TTS to all configured devices."""
+    """Envoie un TTS — à toutes les TV, ou à ``target`` si fourni."""
     hass = call.hass
     call_data = dict(call.data)
-
-    for coord in _iter_coordinators(hass):
-        url = f"http://{coord.ip}:{coord.port}/api/tts"
-        payload = {
-            "text": str(call_data.get("text", "")),
-            "lang": str(call_data.get("lang", "en")),
-            "speed": float(call_data.get("speed", 1.0)),
-            "pitch": float(call_data.get("pitch", 1.0)),
-            "volume": float(call_data.get("volume", 1.0)),
-        }
-        await async_post_json(
-            hass,
-            url,
-            payload,
-            headers=_common_headers(coord.api_key),
-            context=f"tts {coord.device_name}",
-        )
+    coords = _online_targets(
+        _select_coordinators(hass, call_data.pop("target", None)), "tts"
+    )
+    if not coords:
+        return
+    await asyncio.gather(
+        *(_tts_one(hass, c, call_data) for c in coords),
+        return_exceptions=True,
+    )
 
 
 async def async_tts_stop(call: ServiceCall) -> None:
-    """Stop TTS on all configured devices."""
+    """Arrête le TTS — sur toutes les TV, ou sur ``target`` si fourni."""
     hass = call.hass
-    for coord in _iter_coordinators(hass):
-        url = f"http://{coord.ip}:{coord.port}/api/tts/stop"
-        await async_post_json(
-            hass,
-            url,
-            {},
-            headers=_common_headers(coord.api_key),
-            context=f"tts_stop {coord.device_name}",
-        )
+    call_data = dict(call.data)
+    coords = _online_targets(
+        _select_coordinators(hass, call_data.pop("target", None)), "tts_stop"
+    )
+    if not coords:
+        return
+    await asyncio.gather(
+        *(_tts_stop_one(hass, c) for c in coords),
+        return_exceptions=True,
+    )
 
 
 async def async_get_templates(call: ServiceCall) -> dict:

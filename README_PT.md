@@ -575,15 +575,30 @@ A app expõe uma API HTTP local (porta `8081`). Se estiver configurada uma chave
 
 ## 🌍 Multidispositivo e idiomas
 
-Adicione cada TV como uma integração separada. Os serviços `notify`, `tts`, `tts_stop` e `get_templates` aplicam-se a **todos os dispositivos**. Para visar uma única TV:
+Adicione cada TV como uma integração separada. Por predefinição, os serviços `notify`, `tts`, `tts_stop` e `get_templates` aplicam-se a **todas as TV configuradas**; o envio é **paralelo** e as TV offline são **ignoradas** (deixa de bloquear quando uma TV está desligada).
+
+**Visar uma única TV com opções ricas** — use o parâmetro `target` do serviço de domínio `peek_it_ha.notify` (ou `peek_it_ha.tts` / `peek_it_ha.tts_stop`). É a **única** forma de enviar TTS, som ou animações para uma TV específica: a entidade `notify.<tv>` fixa o esquema de `send_message` em `message`+`title` (qualquer chave extra → HTTP 400).
 
 ```yaml
+# Notificação rica em APENAS UMA TV
+service: peek_it_ha.notify
+data:
+  target: <id_dispositivo_tv>   # via UI; um nome de dispositivo ou um IP também funciona
+  message: "Apenas nesta TV"
+  tts: "Movimento detetado"
+  sound: "01_notify.wav"
+```
+
+```yaml
+# Mensagem simples numa TV (sem opções ricas) — basta a entidade notify
 service: notify.send_message
 target:
   entity_id: notify.tv_da_sala
 data:
   message: "Apenas nesta TV"
 ```
+
+> Sem `target` → todas as TV (comportamento histórico, retrocompatível).
 
 A integração e a app estão disponíveis em **6 idiomas**: `en` (predefinição), `fr`, `de`, `es`, `nl`, `pt`. Configurável no Designer ou na app.
 

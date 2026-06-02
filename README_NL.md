@@ -575,15 +575,30 @@ De app stelt een lokale HTTP-API beschikbaar (poort `8081`). Als een API-sleutel
 
 ## 🌍 Multi-apparaat & talen
 
-Voeg elke TV toe als een aparte integratie. De services `notify`, `tts`, `tts_stop` en `get_templates` zijn van toepassing op **alle apparaten**. Om één enkele TV aan te sturen:
+Voeg elke TV toe als een aparte integratie. Standaard zijn de services `notify`, `tts`, `tts_stop` en `get_templates` van toepassing op **alle geconfigureerde TV's**; het verzenden gebeurt **parallel** en offline TV's worden **overgeslagen** (geen blokkering meer wanneer een TV uitstaat).
+
+**Eén enkele TV aansturen met rijke opties** — gebruik de parameter `target` van de domeinservice `peek_it_ha.notify` (of `peek_it_ha.tts` / `peek_it_ha.tts_stop`). Dit is de **enige** manier om TTS, geluid of animaties naar een specifieke TV te sturen: de entiteit `notify.<tv>` bevriest het `send_message`-schema tot `message`+`title` (elke extra sleutel → HTTP 400).
 
 ```yaml
+# Rijke notificatie op SLECHTS ÉÉN TV
+service: peek_it_ha.notify
+data:
+  target: <tv_device_id>   # via de UI; een apparaatnaam of een IP werkt ook
+  message: "Alleen op deze TV"
+  tts: "Beweging gedetecteerd"
+  sound: "01_notify.wav"
+```
+
+```yaml
+# Eenvoudig bericht op één TV (zonder rijke opties) — de notify-entiteit volstaat
 service: notify.send_message
 target:
-  entity_id: notify.tv_du_salon
+  entity_id: notify.woonkamer_tv
 data:
   message: "Alleen op deze TV"
 ```
+
+> Geen `target` → alle TV's (historisch, achterwaarts compatibel gedrag).
 
 De integratie en de app zijn beschikbaar in **6 talen**: `en` (standaard), `fr`, `de`, `es`, `nl`, `pt`. Configureerbaar in de Designer of de app.
 

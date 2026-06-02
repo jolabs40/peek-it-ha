@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] — 2026-06-02
+
+### Added
+
+- **Paramètre `target`** sur les services `peek_it_ha.notify`, `peek_it_ha.tts`
+  et `peek_it_ha.tts_stop` : cible une ou plusieurs TV précises (sélecteur
+  *device* dans l'UI ; accepte aussi un nom de device ou une IP en YAML).
+  Sans `target`, toutes les TV sont visées comme avant (rétrocompatible).
+  C'est désormais le moyen d'envoyer une notification **riche** (TTS, son,
+  animations) à une seule TV, ce que l'entité `notify.<tv>` ne permet pas
+  (schéma `send_message` figé à `message`+`title`).
+
+### Fixed
+
+- **Fan-out parallèle** des services `notify`/`tts`/`tts_stop` via
+  `asyncio.gather` : le coût total n'est plus la somme des TV mais celui de
+  la plus lente. Auparavant, chaque TV éteinte ajoutait ~19 s de retries en
+  séquentiel et pouvait faire échouer l'appel de service entier
+  (« operation aborted »).
+- **TV hors ligne ignorées** : les services s'appuient sur
+  `coordinator.is_online` pour écarter (fail-fast) les TV éteintes et
+  journaliser clairement celles qui sont sautées, sans impacter l'envoi
+  vers les TV en ligne.
+- **`notify.<tv>` plus figé en `unavailable`** : l'entité notify hérite
+  désormais de `CoordinatorEntity` et réévalue sa disponibilité à chaque
+  poll `/api/status`, alignée sur le binary_sensor de statut.
+
 ## [1.1.5] — 2026-05-31
 
 ### Changed

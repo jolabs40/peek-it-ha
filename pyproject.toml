@@ -26,3 +26,8 @@ ignore = [
     "B008",     # function default in arg (HA uses this pattern often)
     "ASYNC109", # `timeout` arg here is the per-request HTTP timeout, not a deadline
 ]
+
+[tool.ruff.lint.isort]
+# Garder les imports `as` groupés (ex. DOMAIN as NOTIFY_DOMAIN) dans le même
+# bloc `from ... import (...)`, conformément au style du dépôt.
+combine-as-imports = true

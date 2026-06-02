@@ -4,7 +4,7 @@ get_templates:
 
 notify:
   name: Send notification
-  description: Sends a rich notification to Peek-it [TV] devices (sound, TTS, animations, templates). By default it targets ALL configured TVs; use the Target field to send to specific ones. Supports 3 modes — simple message, template_id + params, or full JSON elements.
+  description: Sends a rich notification to Peek-it [TV] devices (sound, TTS, animations, templates). By default it targets ALL configured TVs; use the Target field to send to specific ones. Supports 3 modes — simple message, template_id + params, or full JSON elements. Returns a per-TV delivery status (delivered / reason / fallback / http_status) usable via response_variable.
   fields:
     target:
       name: Target device(s)
@@ -179,7 +179,7 @@ notify:
 
 tts:
   name: Text-to-speech
-  description: Sends a text-to-speech message to Peek-it [TV] devices. By default it targets ALL configured TVs; use the Target field to send to specific ones.
+  description: Sends a text-to-speech message to Peek-it [TV] devices. By default it targets ALL configured TVs; use the Target field to send to specific ones. Returns a per-TV delivery status usable via response_variable.
   fields:
     target:
       name: Target device(s)

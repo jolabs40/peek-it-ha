@@ -600,6 +600,17 @@ data:
 
 > `target` absent → toutes les TV (comportement historique, rétrocompatible).
 
+**Statut de livraison** : `peek_it_ha.notify` et `peek_it_ha.tts` renvoient l'état par TV (utilisable via `response_variable`). Une notif refusée par la TV (Ne Pas Déranger, overlay révoqué…) n'est plus un faux succès.
+
+```yaml
+action: peek_it_ha.notify
+data:
+  message: "Test"
+response_variable: peekit
+# peekit = { "TV du salon": { delivered: false, reason: "dnd_active",
+#            fallback: "none", http_status: 200 } }
+```
+
 L'intégration et l'app sont disponibles en **6 langues** : `en` (défaut), `fr`, `de`, `es`, `nl`, `pt`. Configurable dans le Designer ou l'app.
 
 ---

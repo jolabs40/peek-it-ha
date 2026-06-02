@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import secrets
 
@@ -96,9 +97,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             supports_response=SupportsResponse.ONLY,
         )
     if not hass.services.has_service(DOMAIN, "notify"):
-        hass.services.async_register(DOMAIN, "notify", async_notify)
+        hass.services.async_register(
+            DOMAIN, "notify", async_notify,
+            supports_response=SupportsResponse.OPTIONAL,
+        )
     if not hass.services.has_service(DOMAIN, "tts"):
-        hass.services.async_register(DOMAIN, "tts", async_tts)
+        hass.services.async_register(
+            DOMAIN, "tts", async_tts,
+            supports_response=SupportsResponse.OPTIONAL,
+        )
     if not hass.services.has_service(DOMAIN, "tts_stop"):
         hass.services.async_register(DOMAIN, "tts_stop", async_tts_stop)
 
@@ -205,9 +212,40 @@ def _online_targets(
     return online
 
 
+def _parse_delivery(ok: bool, status: int | None, body: str) -> dict:
+    """Interprète la réponse de l'app en ``{delivered, reason, fallback, http_status}``.
+
+    L'app renvoie ``{"status":"ok","delivered":true}`` ou
+    ``{…"delivered":false,"reason":"dnd_active|overlay_permission_denied|…",
+    "fallback":"…"}`` (HTTP 200 même en cas de refus). Une réponse 2xx sans
+    champ ``delivered`` (app ancienne) est considérée délivrée.
+    """
+    result: dict = {
+        "delivered": False,
+        "reason": None,
+        "fallback": None,
+        "http_status": status,
+    }
+    if not ok:
+        result["reason"] = "http_error" if status is not None else "unreachable"
+        return result
+    try:
+        data = json.loads(body) if body else {}
+    except (ValueError, TypeError):
+        data = {}
+    result["delivered"] = bool(data.get("delivered", True))
+    if data.get("reason") is not None:
+        result["reason"] = str(data["reason"])
+    if data.get("fallback") is not None:
+        result["fallback"] = str(data["fallback"])
+    if data.get("premium_blocked"):
+        result["premium_blocked"] = True
+    return result
+
+
 async def _notify_one(
     hass: HomeAssistant, coord: PeekItCoordinator, call_data: dict
-) -> None:
+) -> dict:
     ha_ip = await _resolve_ha_ip(hass, coord.ip)
     payload = build_notify_payload(
         call_data,
@@ -215,25 +253,33 @@ async def _notify_one(
         message=call_data.get("message"),
         title=call_data.get("title"),
     )
-    await async_post_json(
+    ok, status, body = await async_post_json(
         hass,
         f"http://{coord.ip}:{coord.port}/api/notify",
         payload,
         headers=_common_headers(coord.api_key),
         context=f"notify {coord.device_name}",
     )
+    result = _parse_delivery(ok, status, body)
+    if not result["delivered"]:
+        _LOGGER.warning(
+            "Peek-it: notification non délivrée sur %s (reason=%s, HTTP %s)",
+            coord.device_name, result["reason"], status,
+        )
+    return result
 
 
 async def _tts_one(
     hass: HomeAssistant, coord: PeekItCoordinator, call_data: dict
-) -> None:
-    await async_post_json(
+) -> dict:
+    ok, status, body = await async_post_json(
         hass,
         f"http://{coord.ip}:{coord.port}/api/tts",
         build_tts_payload(call_data),
         headers=_common_headers(coord.api_key),
         context=f"tts {coord.device_name}",
     )
+    return _parse_delivery(ok, status, body)
 
 
 async def _tts_stop_one(hass: HomeAssistant, coord: PeekItCoordinator) -> None:
@@ -246,38 +292,61 @@ async def _tts_stop_one(hass: HomeAssistant, coord: PeekItCoordinator) -> None:
     )
 
 
-async def async_notify(call: ServiceCall) -> None:
+async def _dispatch(hass: HomeAssistant, call: ServiceCall, sender, context: str) -> dict:
+    """Fan-out concurrent + collecte du statut de livraison par TV.
+
+    Le coût total est celui de la TV la plus lente (pas la somme). Les TV
+    hors ligne sont écartées de l'envoi mais figurent dans le résultat
+    (``reason="offline"``). Renvoie ``{nom_tv: {delivered, reason, fallback,
+    http_status}}``, exploitable via ``response_variable``.
+    """
+    call_data = dict(call.data)
+    selected = _select_coordinators(hass, call_data.pop("target", None))
+    online = _online_targets(selected, context)
+
+    results: dict[str, dict] = {}
+    for coord in selected:
+        if coord not in online:
+            results[coord.device_name] = {
+                "delivered": False, "reason": "offline",
+                "fallback": None, "http_status": None,
+            }
+
+    if online:
+        sent = await asyncio.gather(
+            *(sender(hass, c, call_data) for c in online),
+            return_exceptions=True,
+        )
+        for coord, res in zip(online, sent, strict=True):
+            if isinstance(res, dict):
+                results[coord.device_name] = res
+            else:
+                _LOGGER.error(
+                    "Peek-it: %s sur %s a levé une exception: %s",
+                    context, coord.device_name, res,
+                )
+                results[coord.device_name] = {
+                    "delivered": False, "reason": "exception",
+                    "fallback": None, "http_status": None,
+                }
+
+    return results
+
+
+async def async_notify(call: ServiceCall) -> dict:
     """Envoie une notification — à toutes les TV, ou à ``target`` si fourni.
 
-    Le fan-out est concurrent (``asyncio.gather``) : le coût total est celui
-    de la TV la plus lente, plus la somme. Les TV hors ligne sont écartées.
+    Renvoie le statut de livraison par TV (``delivered``/``reason``/
+    ``fallback``/``http_status``) ; ignorable si appelé sans
+    ``response_variable`` (rétrocompatible).
     """
-    hass = call.hass
-    call_data = dict(call.data)
-    coords = _online_targets(
-        _select_coordinators(hass, call_data.pop("target", None)), "notify"
-    )
-    if not coords:
-        return
-    await asyncio.gather(
-        *(_notify_one(hass, c, call_data) for c in coords),
-        return_exceptions=True,
-    )
+    return await _dispatch(call.hass, call, _notify_one, "notify")
 
 
-async def async_tts(call: ServiceCall) -> None:
-    """Envoie un TTS — à toutes les TV, ou à ``target`` si fourni."""
-    hass = call.hass
-    call_data = dict(call.data)
-    coords = _online_targets(
-        _select_coordinators(hass, call_data.pop("target", None)), "tts"
-    )
-    if not coords:
-        return
-    await asyncio.gather(
-        *(_tts_one(hass, c, call_data) for c in coords),
-        return_exceptions=True,
-    )
+async def async_tts(call: ServiceCall) -> dict:
+    """Envoie un TTS — à toutes les TV, ou à ``target`` si fourni. Renvoie le
+    statut de livraison par TV."""
+    return await _dispatch(call.hass, call, _tts_one, "tts")
 
 
 async def async_tts_stop(call: ServiceCall) -> None:

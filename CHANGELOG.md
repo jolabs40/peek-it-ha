@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] — 2026-06-02
+
+### Added
+
+- **Statut de livraison remonté** : les services `peek_it_ha.notify` et
+  `peek_it_ha.tts` exploitent désormais le corps de réponse de l'app
+  (`{"delivered":false,"reason":"dnd_active|overlay_permission_denied|…",
+  "fallback":…}`) et le **remontent** via `supports_response` —
+  `{nom_tv: {delivered, reason, fallback, http_status}}`, exploitable avec
+  `response_variable`. Une notification refusée (Ne Pas Déranger, overlay
+  révoqué…) n'est plus comptée comme un succès silencieux ; elle est aussi
+  journalisée en warning. Les TV hors ligne apparaissent avec
+  `reason="offline"`. Rétrocompatible (réponse ignorable).
+
+### Changed
+
+- **Refactorisation interne (aucun changement de comportement)** :
+  - nouveau module `payload.py` centralisant `build_notify_payload` /
+    `build_tts_payload` / `sanitize_element`, partagés par le service de
+    domaine et l'entité `notify` (fin de la duplication du builder) ;
+  - nouveau helper `async_get_json` dans `http.py` (pendant GET de
+    `async_post_json`) ; `_test_connection`, `_fetch_templates`,
+    `_send_welcome_notification` et `get_templates` passent par les helpers
+    HTTP communs au lieu de réécrire le POST/GET.
+
 ## [1.2.0] — 2026-06-02
 
 ### Added

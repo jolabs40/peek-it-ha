@@ -600,6 +600,17 @@ data:
 
 > No `target` → all TVs (historical, backwards-compatible behaviour).
 
+**Delivery status**: `peek_it_ha.notify` and `peek_it_ha.tts` return a per-TV status (usable via `response_variable`). A notification the TV refused (Do Not Disturb, overlay revoked…) is no longer a silent success.
+
+```yaml
+action: peek_it_ha.notify
+data:
+  message: "Test"
+response_variable: peekit
+# peekit = { "Living Room TV": { delivered: false, reason: "dnd_active",
+#            fallback: "none", http_status: 200 } }
+```
+
 The integration and the app are available in **6 languages**: `en` (default), `fr`, `de`, `es`, `nl`, `pt`. Configurable in the Designer or the app.
 
 ---

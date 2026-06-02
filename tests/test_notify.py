@@ -241,6 +241,77 @@ async def test_notify_target_filters_to_single_tv(
     assert not any("192.0.2.20" in u for u in urls)
 
 
+async def test_notify_response_delivered_true(
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    mock_config_entry,
+) -> None:
+    """The domain notify service reports delivered=true from the app body."""
+    await _setup(hass, aioclient_mock, mock_config_entry)
+    aioclient_mock.clear_requests()
+    aioclient_mock.post(
+        "http://192.0.2.10:8081/api/notify",
+        status=200,
+        text='{"status":"ok","delivered":true}',
+    )
+
+    resp = await hass.services.async_call(
+        "peek_it_ha", "notify", {"message": "Hi"},
+        blocking=True, return_response=True,
+    )
+    assert resp == {
+        "Living Room TV": {
+            "delivered": True, "reason": None,
+            "fallback": None, "http_status": 200,
+        }
+    }
+
+
+async def test_notify_response_delivered_false_reason(
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    mock_config_entry,
+) -> None:
+    """A DND refusal (delivered=false) is surfaced with its reason/fallback."""
+    await _setup(hass, aioclient_mock, mock_config_entry)
+    aioclient_mock.clear_requests()
+    aioclient_mock.post(
+        "http://192.0.2.10:8081/api/notify",
+        status=200,
+        text='{"status":"ok","delivered":false,"reason":"dnd_active","fallback":"none"}',
+    )
+
+    resp = await hass.services.async_call(
+        "peek_it_ha", "notify", {"message": "Hi"},
+        blocking=True, return_response=True,
+    )
+    assert resp["Living Room TV"]["delivered"] is False
+    assert resp["Living Room TV"]["reason"] == "dnd_active"
+    assert resp["Living Room TV"]["fallback"] == "none"
+
+
+async def test_notify_response_marks_offline_tv(
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    mock_config_entry,
+) -> None:
+    """An offline TV appears in the response with reason=offline."""
+    await _setup(hass, aioclient_mock, mock_config_entry)
+    coord = hass.data[DOMAIN][mock_config_entry.entry_id]
+    coord.is_online = False
+
+    resp = await hass.services.async_call(
+        "peek_it_ha", "notify", {"message": "Hi"},
+        blocking=True, return_response=True,
+    )
+    assert resp == {
+        "Living Room TV": {
+            "delivered": False, "reason": "offline",
+            "fallback": None, "http_status": None,
+        }
+    }
+
+
 async def test_notify_entity_available_follows_coordinator(
     hass: HomeAssistant,
     aioclient_mock: AiohttpClientMocker,

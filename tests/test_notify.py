@@ -183,6 +183,49 @@ async def test_get_sounds_service(
     }
 
 
+async def test_dismiss_sends_close_action(
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    mock_config_entry,
+) -> None:
+    """dismiss posts action=CLOSE and surfaces the delivery status."""
+    await _setup(hass, aioclient_mock, mock_config_entry)
+    aioclient_mock.clear_requests()
+    aioclient_mock.post(
+        "http://192.0.2.10:8081/api/notify",
+        status=200, text='{"status":"ok","delivered":true}',
+    )
+
+    resp = await hass.services.async_call(
+        "peek_it_ha", "dismiss", {}, blocking=True, return_response=True
+    )
+    posts = [c for c in aioclient_mock.mock_calls if c[0].lower() == "post"]
+    assert posts and posts[-1][2]["action"] == "CLOSE"
+    assert resp["Living Room TV"]["delivered"] is True
+
+
+async def test_dismiss_passes_notification_id(
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    mock_config_entry,
+) -> None:
+    """An optional notification_id is forwarded (guard-railed app field)."""
+    await _setup(hass, aioclient_mock, mock_config_entry)
+    aioclient_mock.clear_requests()
+    aioclient_mock.post(
+        "http://192.0.2.10:8081/api/notify",
+        status=200, text='{"status":"ok","delivered":true}',
+    )
+
+    await hass.services.async_call(
+        "peek_it_ha", "dismiss", {"notification_id": "abc-1"}, blocking=True
+    )
+    await hass.async_block_till_done()
+
+    posts = [c for c in aioclient_mock.mock_calls if c[0].lower() == "post"]
+    assert posts and posts[-1][2]["notification_id"] == "abc-1"
+
+
 async def test_tts_default_lang_from_ha_language(
     hass: HomeAssistant,
     aioclient_mock: AiohttpClientMocker,

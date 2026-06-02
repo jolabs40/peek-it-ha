@@ -20,6 +20,7 @@ from .const import (
     CONF_WEBHOOK_SECRET,
     DEFAULT_PORT,
     DOMAIN,
+    EVENT_BUTTON_PRESS,
     ISSUE_ANDROIDTV_MISSING,
     WEBHOOK_ID,
     WEBHOOK_SECRET_HEADER,
@@ -115,6 +116,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
     if not hass.services.has_service(DOMAIN, "tts_stop"):
         hass.services.async_register(DOMAIN, "tts_stop", async_tts_stop)
+    if not hass.services.has_service(DOMAIN, "dismiss"):
+        hass.services.async_register(
+            DOMAIN, "dismiss", async_dismiss,
+            supports_response=SupportsResponse.OPTIONAL,
+        )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
@@ -150,6 +156,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             hass.services.async_remove(DOMAIN, "notify")
             hass.services.async_remove(DOMAIN, "tts")
             hass.services.async_remove(DOMAIN, "tts_stop")
+            hass.services.async_remove(DOMAIN, "dismiss")
     return unload_ok
 
 
@@ -296,6 +303,28 @@ async def _tts_one(
     return _parse_delivery(ok, status, body)
 
 
+async def _dismiss_one(
+    hass: HomeAssistant, coord: PeekItCoordinator, call_data: dict
+) -> dict:
+    ha_ip = await _resolve_ha_ip(hass, coord.ip)
+    payload: dict = {
+        "action": "CLOSE", "source": "HA", "ha_ip": str(ha_ip), "elements": [],
+    }
+    # Garde-fou : envoyé seulement si fourni, ignoré par l'app tant qu'elle ne
+    # gère pas la fermeture ciblée (CLOSE ferme le sommet de pile). Voir
+    # CLAUDE.md « À coordonner avec l'app Android ».
+    if call_data.get("notification_id"):
+        payload["notification_id"] = str(call_data["notification_id"])
+    ok, status, body = await async_post_json(
+        hass,
+        f"http://{coord.ip}:{coord.port}/api/notify",
+        payload,
+        headers=_common_headers(coord.api_key),
+        context=f"dismiss {coord.device_name}",
+    )
+    return _parse_delivery(ok, status, body)
+
+
 async def _tts_stop_one(hass: HomeAssistant, coord: PeekItCoordinator) -> None:
     await async_post_json(
         hass,
@@ -363,6 +392,12 @@ async def async_tts(call: ServiceCall) -> dict:
     return await _dispatch(call.hass, call, _tts_one, "tts")
 
 
+async def async_dismiss(call: ServiceCall) -> dict:
+    """Ferme la notification au sommet (``action:CLOSE``) — toutes les TV ou
+    ``target``. Renvoie le statut par TV."""
+    return await _dispatch(call.hass, call, _dismiss_one, "dismiss")
+
+
 async def async_tts_stop(call: ServiceCall) -> None:
     """Arrête le TTS — sur toutes les TV, ou sur ``target`` si fourni."""
     hass = call.hass
@@ -424,6 +459,14 @@ async def async_get_sounds(call: ServiceCall) -> dict:
     return result
 
 
+def _device_id_for_ip(hass: HomeAssistant, ip: str | None) -> str | None:
+    """Résout l'``device_id`` du registre HA depuis l'IP d'une TV (callback)."""
+    if not ip:
+        return None
+    device = dr.async_get(hass).async_get_device(identifiers={(DOMAIN, ip)})
+    return device.id if device else None
+
+
 def _valid_webhook_secret(hass: HomeAssistant, presented_secret: str | None) -> bool:
     """Return True iff the presented secret matches at least one configured entry."""
     if not presented_secret:
@@ -458,7 +501,13 @@ async def handle_webhook_log(hass: HomeAssistant, webhook_id: str, request: Requ
 
         if level == "ACTION" and message.startswith("BUTTON_CLICK:"):
             action_id = message.replace("BUTTON_CLICK:", "")
-            hass.bus.async_fire("peekit_button_press", {"action": action_id})
+            event_data: dict = {"action": action_id}
+            # Résout la TV émettrice (IP source → device) pour permettre les
+            # device triggers ; l'event reste rétrocompatible (champ ajouté).
+            device_id = _device_id_for_ip(hass, request.remote)
+            if device_id:
+                event_data["device_id"] = device_id
+            hass.bus.async_fire(EVENT_BUTTON_PRESS, event_data)
             _LOGGER.info("[PEEK-IT] Button pressed: %s", action_id)
             return Response(text="Action received")
 

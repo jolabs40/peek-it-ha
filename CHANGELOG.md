@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] — 2026-06-02
+
+### Added
+
+- **Service `dismiss` (C2)** : ferme la notification au sommet de la pile
+  (raccourci lisible de `action: CLOSE`), avec `target` optionnel et statut de
+  livraison remonté. Champ `notification_id` réservé (envoyé si fourni, ignoré
+  par l'app tant que la fermeture ciblée n'est pas supportée côté app).
+- **Device triggers (C3)** : l'event `peekit_button_press` est exposé en
+  *device trigger* « Bouton de l'overlay pressé », utilisable dans les
+  automations standard. Le webhook enrichit l'event avec `device_id` (résolu
+  depuis l'IP de la TV émettrice) ; l'event reste rétrocompatible
+  (`{action[, device_id]}`).
+
+### Changed
+
+- **`priority` documenté (C4)** : champ indicatif — l'app le journalise mais
+  n'outrepasse pas (encore) le mode Ne Pas Déranger.
+- `services.yaml` : service `dismiss`, description de `priority` clarifiée.
+- `strings.json` + 6 traductions : libellé du device trigger.
+- README (6 langues) : section « Boutons cliquables & fermeture ».
+
 ## [1.4.0] — 2026-06-02
 
 ### Added

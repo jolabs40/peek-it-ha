@@ -334,6 +334,16 @@ data:
 
 ---
 
+## 🖱️ Anklickbare Schaltflächen & Schließen
+
+Ein `focusable` Overlay-Element mit einer `action` sendet den Klick an HA zurück. Erstellen Sie eine Automatisierung über den **Device-Trigger** „Overlay-Schaltfläche gedrückt“ (*Gerät* → Ihr TV) oder lauschen Sie auf das Event `peekit_button_press` (Daten `{action, device_id}`).
+
+Die oberste Benachrichtigung schließen: Dienst **`peek_it_ha.dismiss`** (lesbare Abkürzung für `action: CLOSE`), mit optionalem `target`.
+
+> `priority: urgent` wird gesendet, ist aber **nur ein Hinweis**: Die App protokolliert es, ohne den Bitte-nicht-stören-Modus (noch) zu übergehen.
+
+---
+
 ## 📺 Konfigurationstasten (ADB)
 
 Die Integration stellt **6 Tasten** bereit (Kategorie *Config*), die den TV über **ADB über TCP** steuern, um per Klick Berechtigungen zu setzen, die sich mit der Fernbedienung mühsam aktivieren lassen:

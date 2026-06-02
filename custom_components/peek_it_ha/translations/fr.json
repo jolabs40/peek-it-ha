@@ -109,5 +109,10 @@
       "title": "Intégration Android TV recommandée",
       "description": "L'intégration Android TV n'est pas configurée. Elle est recommandée pour activer les boutons ADB (Assist, Overlay, Accessibilité) fournis par Peek-it [HA]. Ajoutez-la dans *Paramètres → Appareils et services → Ajouter une intégration → Android TV*."
     }
+  },
+  "device_automation": {
+    "trigger_type": {
+      "button_press": "Bouton de l'overlay pressé"
+    }
   }
 }

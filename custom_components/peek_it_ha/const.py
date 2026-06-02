@@ -10,6 +10,8 @@ CONF_WEBHOOK_SECRET = "webhook_secret"
 
 # Fixed identifier for receiving logs (must match the Android app code)
 WEBHOOK_ID = "peek_it_debug"
+# Event fired on the HA bus when a TV overlay button is clicked
+EVENT_BUTTON_PRESS = "peekit_button_press"
 # HTTP header the TV must send so the webhook accepts the call
 WEBHOOK_SECRET_HEADER = "X-Peek-Secret"
 

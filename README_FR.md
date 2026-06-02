@@ -334,6 +334,16 @@ data:
 
 ---
 
+## 🖱️ Boutons cliquables & fermeture
+
+Un élément overlay `focusable` doté d'une `action` renvoie l'appui à HA. Déclenchez une automation via le **device trigger** « Bouton de l'overlay pressé » (*Appareil* → votre TV), ou écoutez l'event `peekit_button_press` (données `{action, device_id}`).
+
+Fermer la notification au sommet : service **`peek_it_ha.dismiss`** (raccourci lisible de `action: CLOSE`), avec `target` optionnel.
+
+> `priority: urgent` est transmis mais reste **indicatif** : l'app le journalise sans (encore) outrepasser le mode Ne Pas Déranger.
+
+---
+
 ## 📺 Boutons de configuration (ADB)
 
 L'intégration expose **6 boutons** (catégorie *Config*) qui pilotent la TV via **ADB sur TCP**, pour régler en un clic des permissions pénibles à activer à la télécommande :

@@ -334,6 +334,16 @@ data:
 
 ---
 
+## 🖱️ Clickable buttons & dismissal
+
+A `focusable` overlay element with an `action` sends the press back to HA. Build an automation via the **device trigger** "Overlay button pressed" (*Device* → your TV), or listen to the `peekit_button_press` event (data `{action, device_id}`).
+
+Close the top-most notification: the **`peek_it_ha.dismiss`** service (a readable shortcut for `action: CLOSE`), with optional `target`.
+
+> `priority: urgent` is sent but **advisory**: the app logs it without (yet) bypassing Do Not Disturb.
+
+---
+
 ## 📺 Configuration buttons (ADB)
 
 The integration exposes **6 buttons** (*Config* category) that drive the TV via **ADB over TCP**, to set in one click those permissions that are painful to enable with the remote:

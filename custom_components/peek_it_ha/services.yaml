@@ -130,7 +130,10 @@ notify:
             - "CLOSE"
     priority:
       name: Priority
-      description: Notification priority.
+      description: >-
+        Notification priority hint sent to the TV. Currently advisory — the app
+        logs it but does NOT bypass Do Not Disturb yet (planned app-side). Does
+        not change queueing.
       required: false
       selector:
         select:
@@ -307,3 +310,25 @@ tts_stop:
         device:
           integration: peek_it_ha
           multiple: true
+
+dismiss:
+  name: Dismiss notification
+  description: Closes the current (top-most) notification overlay on Peek-it [TV] devices — a readable shortcut for action CLOSE. By default it targets ALL configured TVs; use the Target field for specific ones.
+  fields:
+    target:
+      name: Target device(s)
+      description: Limit the dismissal to specific Peek-it [TV] device(s). Leave empty for ALL configured TVs (default).
+      required: false
+      selector:
+        device:
+          integration: peek_it_ha
+          multiple: true
+    notification_id:
+      name: Notification ID
+      description: >-
+        (Reserved) ID of a specific persistent notification to close. Sent only
+        if provided; ignored by current app versions, which always close the
+        top-most overlay. Targeted close is pending app support.
+      required: false
+      selector:
+        text:

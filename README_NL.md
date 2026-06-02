@@ -334,6 +334,16 @@ data:
 
 ---
 
+## 🖱️ Klikbare knoppen & sluiten
+
+Een `focusable` overlay-element met een `action` stuurt de klik terug naar HA. Maak een automatisering via de **device trigger** "Overlay-knop ingedrukt" (*Apparaat* → uw TV), of luister naar het event `peekit_button_press` (data `{action, device_id}`).
+
+De bovenste melding sluiten: service **`peek_it_ha.dismiss`** (leesbare snelkoppeling voor `action: CLOSE`), met optionele `target`.
+
+> `priority: urgent` wordt verzonden maar is **indicatief**: de app logt het zonder (nog) de Niet Storen-modus te omzeilen.
+
+---
+
 ## 📺 Configuratieknoppen (ADB)
 
 De integratie stelt **6 knoppen** beschikbaar (categorie *Config*) die de TV besturen via **ADB over TCP**, om met één klik permissies te regelen die lastig zijn om met de afstandsbediening in te schakelen:

@@ -71,3 +71,53 @@ async def async_post_json(
     _LOGGER.error("%s gave up after %d attempts on %s: %s",
                   context, attempt, url, last_err)
     return False, None, last_err
+
+
+async def async_get_json(
+    hass: HomeAssistant,
+    url: str,
+    *,
+    headers: dict[str, str] | None = None,
+    timeout: float = HTTP_TIMEOUT_SECONDS,
+    retries: int = len(RETRY_BACKOFFS),
+    context: str = "request",
+) -> tuple[int | None, Any]:
+    """GET JSON avec retry optionnel sur ``ClientError`` transitoire.
+
+    Renvoie ``(status_code, data)``. ``status_code`` vaut ``None`` si la
+    connexion a échoué (timeout/ClientError épuisés). ``data`` est le JSON
+    parsé sur 2xx, sinon ``None``. ``retries=0`` ne fait qu'une tentative
+    (utile pour un config flow réactif).
+    """
+    session = async_get_clientsession(hass)
+    backoffs = (0.0, *RETRY_BACKOFFS[:retries])
+    last_err = ""
+    attempt = 0
+
+    while attempt < len(backoffs):
+        wait = backoffs[attempt]
+        if wait:
+            await asyncio.sleep(wait)
+        attempt += 1
+        try:
+            async with session.get(
+                url,
+                headers=headers or {},
+                timeout=aiohttp.ClientTimeout(total=timeout),
+            ) as response:
+                if 200 <= response.status < 300:
+                    try:
+                        return response.status, await response.json()
+                    except (aiohttp.ContentTypeError, ValueError):
+                        return response.status, None
+                # Non-2xx : la TV a répondu explicitement, pas de retry.
+                return response.status, None
+        except (TimeoutError, aiohttp.ClientError) as err:
+            last_err = str(err)
+            _LOGGER.debug(
+                "%s attempt %d on %s failed: %s", context, attempt, url, err
+            )
+            continue
+
+    _LOGGER.debug("%s gave up on %s: %s", context, url, last_err)
+    return None, None

@@ -2,11 +2,9 @@
 import logging
 import secrets
 
-import aiohttp
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import (
     CONF_API_KEY,
@@ -19,6 +17,7 @@ from .const import (
     HTTP_TIMEOUT_SECONDS,
     STATUS_TIMEOUT_SECONDS,
 )
+from .http import async_get_json, async_post_json
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -264,18 +263,17 @@ class PeekItOptionsFlow(config_entries.OptionsFlow):
         url = f"http://{ip}:{port}/api/templates/list"
         headers = {"X-API-Key": api_key} if api_key else {}
 
-        session = async_get_clientsession(self.hass)
-        try:
-            async with session.get(
-                url,
-                headers=headers,
-                timeout=aiohttp.ClientTimeout(total=HTTP_TIMEOUT_SECONDS),
-            ) as response:
-                if response.status != 200:
-                    return f"HTTP Error {response.status}"
-                data = await response.json()
-        except (TimeoutError, aiohttp.ClientError) as e:
-            return f"Connection failed: {e}"
+        status, data = await async_get_json(
+            self.hass,
+            url,
+            headers=headers,
+            timeout=HTTP_TIMEOUT_SECONDS,
+            context="templates list",
+        )
+        if status is None:
+            return "Connection failed"
+        if status != 200 or data is None:
+            return f"HTTP Error {status}"
 
         sections = []
 
@@ -336,25 +334,25 @@ async def _test_connection(
     """
     url = f"http://{ip}:{port}/api/status"
     headers = {"X-API-Key": api_key} if api_key else {}
-    session = async_get_clientsession(hass)
-    try:
-        async with session.get(
-            url,
-            headers=headers,
-            timeout=aiohttp.ClientTimeout(total=STATUS_TIMEOUT_SECONDS),
-        ) as response:
-            if response.status in (401, 403):
-                return "auth_required"
-            if response.status == 200:
-                data = await response.json()
-                key_required = data.get("api_key_required", False)
-                key_valid = data.get("api_key_valid", True)
-                if key_required and not key_valid:
-                    return "auth_required"
-                return "ok"
-            return "failed"
-    except (TimeoutError, aiohttp.ClientError):
-        return "failed"
+
+    # retries=0 : config flow réactif (pas d'attente de backoff sur IP erronée)
+    status, data = await async_get_json(
+        hass,
+        url,
+        headers=headers,
+        timeout=STATUS_TIMEOUT_SECONDS,
+        retries=0,
+        context="connection test",
+    )
+    if status in (401, 403):
+        return "auth_required"
+    if status == 200 and data is not None:
+        key_required = data.get("api_key_required", False)
+        key_valid = data.get("api_key_valid", True)
+        if key_required and not key_valid:
+            return "auth_required"
+        return "ok"
+    return "failed"
 
 
 async def _send_welcome_notification(
@@ -448,15 +446,12 @@ async def _send_welcome_notification(
     if webhook_secret:
         payload["webhook_secret"] = webhook_secret
 
-    session = async_get_clientsession(hass)
-    try:
-        async with session.post(
-            url,
-            json=payload,
-            headers=headers,
-            timeout=aiohttp.ClientTimeout(total=HTTP_TIMEOUT_SECONDS),
-        ) as response:
-            if response.status != 200:
-                _LOGGER.warning("Welcome notification: HTTP %s", response.status)
-    except (TimeoutError, aiohttp.ClientError) as e:
-        _LOGGER.warning("Welcome notification: %s", e)
+    ok, status, _ = await async_post_json(
+        hass,
+        url,
+        payload,
+        headers=headers,
+        context="welcome notification",
+    )
+    if not ok:
+        _LOGGER.warning("Welcome notification failed (HTTP %s)", status)

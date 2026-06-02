@@ -24,7 +24,8 @@ from .const import (
     WEBHOOK_SECRET_HEADER,
 )
 from .coordinator import PeekItCoordinator
-from .http import async_post_json
+from .http import async_get_json, async_post_json
+from .payload import build_notify_payload, build_tts_payload
 
 PLATFORMS = ["binary_sensor", "notify", "button"]
 
@@ -204,94 +205,20 @@ def _online_targets(
     return online
 
 
-def _build_notify_payload(call_data: dict, ha_ip: str) -> dict:
-    """Construit le payload strict ``/api/notify`` (3 modes).
-
-    Identique pour chaque TV à l'exception de ``ha_ip`` (callback logs),
-    d'où l'extraction en fonction pure réutilisée par le fan-out.
-    """
-    payload: dict = {
-        "action": str(call_data.get("action", "DISPLAY")),
-        "duration": int(call_data.get("duration", 10000)),
-        "source": "HA",
-        "ha_ip": str(ha_ip),
-        "elements": [],
-    }
-
-    # Optional fields
-    if "priority" in call_data:
-        payload["priority"] = str(call_data["priority"])
-    if "animationIn" in call_data:
-        payload["animationIn"] = str(call_data["animationIn"])
-    if "animationOut" in call_data:
-        payload["animationOut"] = str(call_data["animationOut"])
-
-    if "sound" in call_data:
-        payload["sound"] = str(call_data["sound"])
-    if "soundVolume" in call_data:
-        payload["soundVolume"] = float(call_data["soundVolume"])
-
-    if "tts" in call_data:
-        payload["tts"] = str(call_data["tts"])
-    if "ttsLang" in call_data:
-        payload["ttsLang"] = str(call_data["ttsLang"])
-    if "ttsSpeed" in call_data:
-        payload["ttsSpeed"] = float(call_data["ttsSpeed"])
-    if "ttsPitch" in call_data:
-        payload["ttsPitch"] = float(call_data["ttsPitch"])
-    if "ttsVolume" in call_data:
-        payload["ttsVolume"] = float(call_data["ttsVolume"])
-
-    if "template_id" in call_data:
-        payload["template_id"] = str(call_data["template_id"])
-        if "params" in call_data and isinstance(call_data["params"], dict):
-            payload["params"] = {
-                str(k): str(v) for k, v in call_data["params"].items()
-            }
-    elif "elements" in call_data:
-        payload["elements"] = call_data["elements"]
-    elif "message" in call_data:
-        message = str(call_data["message"])
-        payload["elements"].append({
-            "type": "box",
-            "style": {"left": 0, "top": 80, "width": 100, "height": 20,
-                      "bgColor": "#CC000000"}
-        })
-        payload["elements"].append({
-            "type": "message", "content": message,
-            "style": {"left": 5, "top": 82, "width": 90, "height": 16,
-                      "size": 30, "color": "#FFFFFF", "align": "center"}
-        })
-        if "title" in call_data:
-            payload["elements"].append({
-                "type": "title", "content": str(call_data["title"]),
-                "style": {"left": 5, "top": 72, "width": 90, "height": 8,
-                          "size": 35, "color": "#3d7eff",
-                          "align": "center", "weight": "bold"}
-            })
-
-    return payload
-
-
-def _build_tts_payload(call_data: dict) -> dict:
-    """Construit le payload ``/api/tts`` (identique pour chaque TV)."""
-    return {
-        "text": str(call_data.get("text", "")),
-        "lang": str(call_data.get("lang", "en")),
-        "speed": float(call_data.get("speed", 1.0)),
-        "pitch": float(call_data.get("pitch", 1.0)),
-        "volume": float(call_data.get("volume", 1.0)),
-    }
-
-
 async def _notify_one(
     hass: HomeAssistant, coord: PeekItCoordinator, call_data: dict
 ) -> None:
     ha_ip = await _resolve_ha_ip(hass, coord.ip)
+    payload = build_notify_payload(
+        call_data,
+        str(ha_ip),
+        message=call_data.get("message"),
+        title=call_data.get("title"),
+    )
     await async_post_json(
         hass,
         f"http://{coord.ip}:{coord.port}/api/notify",
-        _build_notify_payload(call_data, ha_ip),
+        payload,
         headers=_common_headers(coord.api_key),
         context=f"notify {coord.device_name}",
     )
@@ -303,7 +230,7 @@ async def _tts_one(
     await async_post_json(
         hass,
         f"http://{coord.ip}:{coord.port}/api/tts",
-        _build_tts_payload(call_data),
+        build_tts_payload(call_data),
         headers=_common_headers(coord.api_key),
         context=f"tts {coord.device_name}",
     )
@@ -370,28 +297,23 @@ async def async_tts_stop(call: ServiceCall) -> None:
 
 async def async_get_templates(call: ServiceCall) -> dict:
     """Retrieve the template list from all configured devices."""
-    import aiohttp
-    from homeassistant.helpers.aiohttp_client import async_get_clientsession
-
     hass = call.hass
     result: dict = {}
-    session = async_get_clientsession(hass)
 
     for coord in _iter_coordinators(hass):
         url = f"http://{coord.ip}:{coord.port}/api/templates/list"
-        headers = _common_headers(coord.api_key)
-        try:
-            async with session.get(
-                url,
-                headers=headers,
-                timeout=aiohttp.ClientTimeout(total=5),
-            ) as response:
-                if response.status == 200:
-                    result[coord.device_name] = await response.json()
-                else:
-                    result[coord.device_name] = {"error": f"HTTP {response.status}"}
-        except (TimeoutError, aiohttp.ClientError) as e:
-            result[coord.device_name] = {"error": f"Connection failed: {e}"}
+        status, data = await async_get_json(
+            hass,
+            url,
+            headers=_common_headers(coord.api_key),
+            context=f"templates {coord.device_name}",
+        )
+        if status == 200 and data is not None:
+            result[coord.device_name] = data
+        elif status is None:
+            result[coord.device_name] = {"error": "Connection failed"}
+        else:
+            result[coord.device_name] = {"error": f"HTTP {status}"}
 
     return result
 

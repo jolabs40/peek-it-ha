@@ -17,6 +17,7 @@ def build_notify_payload(
     message: str | None = None,
     title: str | None = None,
     sanitize: bool = False,
+    default_tts_lang: str | None = None,
 ) -> dict[str, Any]:
     """Construit le payload strict ``/api/notify`` (3 modes).
 
@@ -53,6 +54,9 @@ def build_notify_payload(
         payload["tts"] = str(data["tts"])
     if "ttsLang" in data:
         payload["ttsLang"] = str(data["ttsLang"])
+    elif "tts" in data and default_tts_lang:
+        # B2 : langue TTS par défaut = langue HA, si non précisée.
+        payload["ttsLang"] = str(default_tts_lang)
     if "ttsSpeed" in data:
         payload["ttsSpeed"] = float(data["ttsSpeed"])
     if "ttsPitch" in data:
@@ -73,9 +77,18 @@ def build_notify_payload(
         payload["elements"] = (
             [sanitize_element(el) for el in raw] if sanitize else raw
         )
-    # Mode 1 : message simple
-    elif message:
-        elements = _simple_elements(message, title)
+    # Mode 1 : message simple (+ presets optionnels B3 / image C1)
+    elif message or data.get("image_url"):
+        elements = _simple_elements(
+            message or "",
+            title,
+            position=data.get("position"),
+            icon=data.get("icon"),
+            color=data.get("color"),
+            level=data.get("level"),
+            image_url=data.get("image_url"),
+            image_fit=data.get("image_fit"),
+        )
         payload["elements"] = (
             [sanitize_element(el) for el in elements] if sanitize else elements
         )
@@ -83,8 +96,20 @@ def build_notify_payload(
     return payload
 
 
-def _simple_elements(message: str, title: str | None) -> list[dict]:
-    """Éléments du mode simple : box de fond + message [+ title]."""
+# B3 — presets du mode simple
+_POSITION_BOX_TOP = {"top": 18.0, "center": 42.0, "bottom": 78.0}
+_LEVELS = {
+    "info": {"accent": "#18BCF2", "icon": "mdi:information"},
+    "warning": {"accent": "#FFB300", "icon": "mdi:alert"},
+    "alert": {"accent": "#FF3B30", "icon": "mdi:alert-octagon"},
+}
+
+
+def _legacy_simple_elements(message: str, title: str | None) -> list[dict]:
+    """Mode simple historique (aucun preset) : box de fond + message [+ title].
+
+    Conservé à l'identique pour garantir zéro régression du rendu par défaut.
+    """
     elements: list[dict] = [
         {
             "type": "box",
@@ -107,11 +132,87 @@ def _simple_elements(message: str, title: str | None) -> list[dict]:
     return elements
 
 
-def build_tts_payload(data: dict[str, Any]) -> dict[str, Any]:
-    """Construit le payload ``/api/tts``."""
+def _simple_elements(
+    message: str,
+    title: str | None,
+    *,
+    position: str | None = None,
+    icon: str | None = None,
+    color: str | None = None,
+    level: str | None = None,
+    image_url: str | None = None,
+    image_fit: str | None = None,
+) -> list[dict]:
+    """Éléments du mode simple.
+
+    Sans aucun preset → :func:`_legacy_simple_elements` (rendu inchangé).
+    Avec presets (B3) ou image (C1) → layout dédié : la box/message à la
+    ``position`` choisie, l'icône (``icon`` ou icône du ``level``) et le titre
+    empilés au-dessus, dans la couleur d'accent (``color`` ou couleur du
+    ``level``), plus une éventuelle image.
+    """
+    if not (position or icon or color or level or image_url):
+        return _legacy_simple_elements(message, title)
+
+    level_cfg = _LEVELS.get(str(level).lower(), {}) if level else {}
+    accent = color or level_cfg.get("accent") or "#3d7eff"
+    glyph = icon or level_cfg.get("icon")
+    box_top = _POSITION_BOX_TOP.get(
+        str(position).lower() if position else "bottom", 78.0
+    )
+
+    elements: list[dict] = []
+    if message:
+        elements.append({
+            "type": "box",
+            "style": {"left": 0, "top": box_top, "width": 100, "height": 20,
+                      "bgColor": "#CC000000"},
+        })
+        elements.append({
+            "type": "message", "content": str(message),
+            "style": {"left": 5, "top": box_top + 2, "width": 90, "height": 16,
+                      "size": 30, "color": "#FFFFFF", "align": "center"},
+        })
+
+    # Icône puis titre empilés au-dessus de la box.
+    y = box_top
+    if glyph:
+        y -= 9
+        elements.append({
+            "type": "text", "content": str(glyph),
+            "style": {"left": 0, "top": y, "width": 100, "height": 7,
+                      "size": 44, "color": accent, "align": "center"},
+        })
+    if title:
+        y -= 9
+        elements.append({
+            "type": "title", "content": str(title),
+            "style": {"left": 5, "top": y, "width": 90, "height": 7,
+                      "size": 34, "color": accent,
+                      "align": "center", "weight": "bold"},
+        })
+
+    if image_url:
+        elements.append({
+            "type": "image", "content": str(image_url),
+            "style": {"left": 30, "top": 6, "width": 40, "height": 52,
+                      "fit": str(image_fit) if image_fit else "contain"},
+        })
+
+    return elements
+
+
+def build_tts_payload(
+    data: dict[str, Any], *, default_lang: str = "en"
+) -> dict[str, Any]:
+    """Construit le payload ``/api/tts``.
+
+    ``default_lang`` (typiquement ``hass.config.language``) est utilisé quand
+    l'appelant ne fournit pas de ``lang``.
+    """
     return {
         "text": str(data.get("text", "")),
-        "lang": str(data.get("lang", "en")),
+        "lang": str(data.get("lang") or default_lang),
         "speed": float(data.get("speed", 1.0)),
         "pitch": float(data.get("pitch", 1.0)),
         "volume": float(data.get("volume", 1.0)),
@@ -154,6 +255,8 @@ def sanitize_element(el: dict) -> dict:
         clean_style["animationSpeed"] = float(s["animationSpeed"])
     if "rotation" in s:
         clean_style["rotation"] = float(s["rotation"])
+    if "fit" in s:
+        clean_style["fit"] = str(s["fit"])
 
     result = {
         "type": str(el.get("type", "box")),

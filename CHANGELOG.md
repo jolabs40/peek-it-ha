@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] — 2026-06-02
+
+### Added
+
+- **Mode simple enrichi (B3)** : champs optionnels `position`
+  (`top`/`center`/`bottom`), `level` (`info`/`warning`/`alert` → couleur
+  d'accent + icône), `icon` (`mdi:…`) et `color`, qui génèrent les `elements`
+  automatiquement. Le rendu par défaut est **inchangé** si ces champs sont
+  absents (chemin legacy préservé à l'identique).
+- **Image dans le mode simple (C1)** : `image_url` (+ `image_fit`
+  contain/cover/fill) → élément `image` (URL http(s), `data:base64` ou chemin
+  local, via Glide). Cas d'usage : photo d'un visiteur de sonnette. Le mode
+  image-seule (sans `message`) est supporté.
+- **Service `get_sounds` (B4)** : liste les sons disponibles (`official` +
+  `custom`) de chaque TV via `GET /api/sounds/list`.
+- **Langue TTS par défaut = langue Home Assistant (B2)** : `ttsLang`/`lang`
+  non précisé → 1er segment de `hass.config.language` (ex. `fr`), pour
+  `peek_it_ha.tts` et le mode TTS de `peek_it_ha.notify`.
+
+### Changed
+
+- `services.yaml` : nouveaux champs `position`/`level`/`icon`/`color`/
+  `image_url`/`image_fit`, service `get_sounds`, liste des sons intégrés
+  documentée, langue TTS par défaut clarifiée.
+- README (6 langues) : section « Mode simple enrichi (presets & image) ».
+
 ## [1.3.0] — 2026-06-02
 
 ### Added

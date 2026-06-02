@@ -304,7 +304,33 @@ data:
   soundVolume: 0.8   # 0.0 a 1.0
 ```
 
-La app viene con sonidos integrados y acepta tus sonidos personalizados (mediante el Designer).
+La app viene con sonidos integrados (`01_notify.wav`…`05_notify.wav`, `06-notify.ogg`, `07-notify.ogg`, `08-notify.mp3`…`10-notify.mp3`) y acepta tus sonidos personalizados (mediante el Designer). El servicio **`peek_it_ha.get_sounds`** lista los sonidos disponibles de una TV (`{official, custom}`).
+
+---
+
+## 🎨 Modo simple enriquecido (presets e imagen)
+
+Sin tocar el JSON `elements`, el modo simple acepta **presets** opcionales — `position` (`top`/`center`/`bottom`), `level` (`info`/`warning`/`alert`, que elige un color de acento + icono), `icon` (`mdi:…`) y `color` (acento hex) — además de una **imagen** (`image_url` + `image_fit`). El renderizado por defecto no cambia si estos campos están ausentes.
+
+```yaml
+# Alerta con icono y acento
+service: peek_it_ha.notify
+data:
+  message: "Fuga de agua detectada"
+  level: alert
+  position: center
+```
+
+```yaml
+# Foto del visitante (timbre) en la TV
+service: peek_it_ha.notify
+data:
+  message: "Alguien en la puerta"
+  image_url: "http://192.168.1.50/snapshot.jpg"
+  image_fit: cover        # contain | cover | fill
+```
+
+> `image_url` acepta una URL http(s), un `data:base64` o una ruta local. Sin `message`, solo se muestra la imagen. El idioma del TTS (`ttsLang`/`lang`) sigue el idioma de Home Assistant si se omite.
 
 ---
 

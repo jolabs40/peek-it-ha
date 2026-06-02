@@ -161,6 +161,50 @@ async def test_tts_service_payload(
     }
 
 
+async def test_get_sounds_service(
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    mock_config_entry,
+) -> None:
+    """get_sounds returns the app's official + custom sound lists per TV."""
+    aioclient_mock.get(
+        "http://192.0.2.10:8081/api/sounds/list",
+        json={"official": ["01_notify.wav"], "custom": ["doorbell.mp3"]},
+    )
+    await _setup(hass, aioclient_mock, mock_config_entry)
+
+    resp = await hass.services.async_call(
+        "peek_it_ha", "get_sounds", {}, blocking=True, return_response=True
+    )
+    assert resp == {
+        "Living Room TV": {
+            "official": ["01_notify.wav"], "custom": ["doorbell.mp3"]
+        }
+    }
+
+
+async def test_tts_default_lang_from_ha_language(
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    mock_config_entry,
+) -> None:
+    """Omitting `lang` falls back to the Home Assistant language (B2)."""
+    hass.config.language = "fr"
+    await _setup(hass, aioclient_mock, mock_config_entry)
+    aioclient_mock.post(
+        "http://192.0.2.10:8081/api/tts", status=200, text="ok"
+    )
+
+    await hass.services.async_call(
+        "peek_it_ha", "tts", {"text": "Bonjour"}, blocking=True
+    )
+    await hass.async_block_till_done()
+
+    posts = [c for c in aioclient_mock.mock_calls
+             if c[0].lower() == "post" and str(c[1]).endswith("/api/tts")]
+    assert posts and posts[-1][2]["lang"] == "fr"
+
+
 def _second_entry() -> MockConfigEntry:
     """A second configured TV at 192.0.2.20."""
     return MockConfigEntry(

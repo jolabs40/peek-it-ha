@@ -96,6 +96,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             async_get_templates,
             supports_response=SupportsResponse.ONLY,
         )
+    if not hass.services.has_service(DOMAIN, "get_sounds"):
+        hass.services.async_register(
+            DOMAIN,
+            "get_sounds",
+            async_get_sounds,
+            supports_response=SupportsResponse.ONLY,
+        )
     if not hass.services.has_service(DOMAIN, "notify"):
         hass.services.async_register(
             DOMAIN, "notify", async_notify,
@@ -139,6 +146,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             if hass.data[DOMAIN].pop(_WEBHOOK_REGISTERED_KEY, False):
                 webhook.async_unregister(hass, WEBHOOK_ID)
             hass.services.async_remove(DOMAIN, "get_templates")
+            hass.services.async_remove(DOMAIN, "get_sounds")
             hass.services.async_remove(DOMAIN, "notify")
             hass.services.async_remove(DOMAIN, "tts")
             hass.services.async_remove(DOMAIN, "tts_stop")
@@ -155,6 +163,11 @@ async def _resolve_ha_ip(hass: HomeAssistant, target_ip: str) -> str:
 
 def _common_headers(api_key: str) -> dict[str, str]:
     return {"X-API-Key": api_key} if api_key else {}
+
+
+def _default_tts_lang(hass: HomeAssistant) -> str:
+    """Langue TTS par défaut = 1er segment de la langue HA (ex. ``fr``)."""
+    return (hass.config.language or "en").split("-")[0]
 
 
 def _select_coordinators(
@@ -252,6 +265,7 @@ async def _notify_one(
         str(ha_ip),
         message=call_data.get("message"),
         title=call_data.get("title"),
+        default_tts_lang=_default_tts_lang(hass),
     )
     ok, status, body = await async_post_json(
         hass,
@@ -275,7 +289,7 @@ async def _tts_one(
     ok, status, body = await async_post_json(
         hass,
         f"http://{coord.ip}:{coord.port}/api/tts",
-        build_tts_payload(call_data),
+        build_tts_payload(call_data, default_lang=_default_tts_lang(hass)),
         headers=_common_headers(coord.api_key),
         context=f"tts {coord.device_name}",
     )
@@ -376,6 +390,29 @@ async def async_get_templates(call: ServiceCall) -> dict:
             url,
             headers=_common_headers(coord.api_key),
             context=f"templates {coord.device_name}",
+        )
+        if status == 200 and data is not None:
+            result[coord.device_name] = data
+        elif status is None:
+            result[coord.device_name] = {"error": "Connection failed"}
+        else:
+            result[coord.device_name] = {"error": f"HTTP {status}"}
+
+    return result
+
+
+async def async_get_sounds(call: ServiceCall) -> dict:
+    """Retrieve the available sounds (official + custom) from each device."""
+    hass = call.hass
+    result: dict = {}
+
+    for coord in _iter_coordinators(hass):
+        url = f"http://{coord.ip}:{coord.port}/api/sounds/list"
+        status, data = await async_get_json(
+            hass,
+            url,
+            headers=_common_headers(coord.api_key),
+            context=f"sounds {coord.device_name}",
         )
         if status == 200 and data is not None:
             result[coord.device_name] = data

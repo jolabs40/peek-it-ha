@@ -304,7 +304,33 @@ data:
   soundVolume: 0.8   # 0.0 to 1.0
 ```
 
-The app ships with built-in sounds and accepts your custom sounds (via the Designer).
+The app ships with built-in sounds (`01_notify.wav`…`05_notify.wav`, `06-notify.ogg`, `07-notify.ogg`, `08-notify.mp3`…`10-notify.mp3`) and accepts your custom sounds (via the Designer). The **`peek_it_ha.get_sounds`** service lists a TV's available sounds (`{official, custom}`).
+
+---
+
+## 🎨 Enriched simple mode (presets & image)
+
+Without touching the `elements` JSON, the simple mode accepts optional **presets** — `position` (`top`/`center`/`bottom`), `level` (`info`/`warning`/`alert`, which picks an accent color + icon), `icon` (`mdi:…`) and `color` (hex accent) — plus an **image** (`image_url` + `image_fit`). The default rendering is unchanged when these fields are absent.
+
+```yaml
+# Alert with icon and accent
+service: peek_it_ha.notify
+data:
+  message: "Water leak detected"
+  level: alert            # red accent + mdi:alert-octagon
+  position: center
+```
+
+```yaml
+# Visitor snapshot (doorbell) on the TV
+service: peek_it_ha.notify
+data:
+  message: "Someone at the door"
+  image_url: "http://192.168.1.50/snapshot.jpg"
+  image_fit: cover        # contain | cover | fill
+```
+
+> `image_url` accepts an http(s) URL, a `data:base64` string or a local path. Without `message`, only the image is shown. The TTS language (`ttsLang`/`lang`) follows the Home Assistant language when omitted.
 
 ---
 

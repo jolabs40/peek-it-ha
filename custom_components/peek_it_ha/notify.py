@@ -89,12 +89,14 @@ class PeekItNotificationEntity(CoordinatorEntity[PeekItCoordinator], NotifyEntit
         except Exception:  # noqa: BLE001 — best-effort lookup
             ha_ip = "127.0.0.1"
 
+        default_tts_lang = (self.hass.config.language or "en").split("-")[0]
         payload = build_notify_payload(
             data or {},
             str(ha_ip),
             message=message,
             title=title,
             sanitize=True,
+            default_tts_lang=default_tts_lang,
         )
 
         await async_post_json(

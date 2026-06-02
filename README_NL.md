@@ -304,7 +304,33 @@ data:
   soundVolume: 0.8   # 0.0 tot 1.0
 ```
 
-De app wordt geleverd met ingebouwde geluiden en accepteert uw eigen geluiden (via de Designer).
+De app wordt geleverd met ingebouwde geluiden (`01_notify.wav`…`05_notify.wav`, `06-notify.ogg`, `07-notify.ogg`, `08-notify.mp3`…`10-notify.mp3`) en accepteert uw eigen geluiden (via de Designer). De service **`peek_it_ha.get_sounds`** somt de beschikbare geluiden van een TV op (`{official, custom}`).
+
+---
+
+## 🎨 Verrijkte eenvoudige modus (presets & afbeelding)
+
+Zonder de `elements`-JSON aan te raken accepteert de eenvoudige modus optionele **presets** — `position` (`top`/`center`/`bottom`), `level` (`info`/`warning`/`alert`, kiest een accentkleur + pictogram), `icon` (`mdi:…`) en `color` (hex-accent) — plus een **afbeelding** (`image_url` + `image_fit`). De standaardweergave blijft ongewijzigd als deze velden ontbreken.
+
+```yaml
+# Waarschuwing met pictogram en accent
+service: peek_it_ha.notify
+data:
+  message: "Waterlek gedetecteerd"
+  level: alert
+  position: center
+```
+
+```yaml
+# Bezoekersfoto (deurbel) op de TV
+service: peek_it_ha.notify
+data:
+  message: "Iemand aan de deur"
+  image_url: "http://192.168.1.50/snapshot.jpg"
+  image_fit: cover        # contain | cover | fill
+```
+
+> `image_url` accepteert een http(s)-URL, een `data:base64` of een lokaal pad. Zonder `message` wordt alleen de afbeelding getoond. De TTS-taal (`ttsLang`/`lang`) volgt de Home Assistant-taal indien weggelaten.
 
 ---
 

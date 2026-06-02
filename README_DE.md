@@ -304,7 +304,33 @@ data:
   soundVolume: 0.8   # 0.0 bis 1.0
 ```
 
-Die App wird mit integrierten Klängen geliefert und akzeptiert Ihre eigenen Klänge (über den Designer).
+Die App wird mit integrierten Klängen geliefert (`01_notify.wav`…`05_notify.wav`, `06-notify.ogg`, `07-notify.ogg`, `08-notify.mp3`…`10-notify.mp3`) und akzeptiert Ihre eigenen Klänge (über den Designer). Der Dienst **`peek_it_ha.get_sounds`** listet die verfügbaren Klänge einer TV auf (`{official, custom}`).
+
+---
+
+## 🎨 Erweiterter einfacher Modus (Presets & Bild)
+
+Ohne das `elements`-JSON anzufassen akzeptiert der einfache Modus optionale **Presets** — `position` (`top`/`center`/`bottom`), `level` (`info`/`warning`/`alert`, wählt Akzentfarbe + Icon), `icon` (`mdi:…`) und `color` (Hex-Akzent) — sowie ein **Bild** (`image_url` + `image_fit`). Die Standarddarstellung bleibt unverändert, wenn diese Felder fehlen.
+
+```yaml
+# Warnung mit Icon und Akzent
+service: peek_it_ha.notify
+data:
+  message: "Wasserleck erkannt"
+  level: alert
+  position: center
+```
+
+```yaml
+# Besucher-Schnappschuss (Türklingel) auf dem TV
+service: peek_it_ha.notify
+data:
+  message: "Jemand an der Tür"
+  image_url: "http://192.168.1.50/snapshot.jpg"
+  image_fit: cover        # contain | cover | fill
+```
+
+> `image_url` akzeptiert eine http(s)-URL, ein `data:base64` oder einen lokalen Pfad. Ohne `message` wird nur das Bild angezeigt. Die TTS-Sprache (`ttsLang`/`lang`) folgt der Home-Assistant-Sprache, wenn nicht angegeben.
 
 ---
 

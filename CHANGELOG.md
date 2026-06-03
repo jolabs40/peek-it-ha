@@ -26,12 +26,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   services existants.
 - `services.yaml` : schéma UI du service `save_template`.
 
-### Contrat app à implémenter
+### Contrat app — implémenté ✅
 
 - `POST /api/templates/save` — body `{id, name?, elements[], overwrite?, source}`,
   réponse HTTP 200 `{"status":"ok","saved":true,"id":…}` ou
   `{…"saved":false,"reason":"invalid_id|empty_elements|exists|storage_error"}`
-  (200 même en cas de refus, comme `/api/notify`). Côté HA déjà prêt.
+  (200 même en cas de refus, comme `/api/notify`). Implémenté côté app
+  (`../peek-it`) en route **polymorphe** : un `elements` à la racine route vers
+  le contrat HA, le Concepteur (`content.elements`) garde son contrat
+  historique. Le slug HA devient la clé `<slug>.json` dans `Template_Custom/`,
+  visible dans `/api/templates/list` et rendable par `/api/notify`.
 
 ## [1.5.0] — 2026-06-02
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 from custom_components.peek_it_ha.payload import (
     _legacy_simple_elements,
     build_notify_payload,
+    build_save_template_payload,
     build_tts_payload,
 )
 
@@ -89,3 +90,29 @@ def test_sanitize_preserves_image_fit() -> None:
     )
     img = next(e for e in payload["elements"] if e["type"] == "image")
     assert img["style"]["fit"] == "cover"
+
+
+def test_save_template_payload_sanitizes_and_defaults() -> None:
+    """id/name/overwrite passthrough + each element forced through sanitize."""
+    payload = build_save_template_payload({
+        "template_id": "doorbell",
+        "name": "Doorbell",
+        "elements": [{"type": "rect", "style": {"left": "5"}}],
+    })
+    assert payload["id"] == "doorbell"
+    assert payload["name"] == "Doorbell"
+    assert payload["overwrite"] is True
+    assert payload["source"] == "HA"
+    # sanitize_element forces Java types (left coerced to float).
+    assert payload["elements"][0]["type"] == "rect"
+    assert payload["elements"][0]["style"]["left"] == 5.0
+
+
+def test_save_template_payload_omits_name_and_honours_overwrite() -> None:
+    """No name → key absent ; overwrite=False passed through."""
+    payload = build_save_template_payload(
+        {"template_id": "t1", "overwrite": False}
+    )
+    assert "name" not in payload
+    assert payload["overwrite"] is False
+    assert payload["elements"] == []

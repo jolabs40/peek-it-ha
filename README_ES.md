@@ -191,6 +191,8 @@ Se emite una sola petición `GET /api/status` por TV cada 30 s; todas las entida
 
 > Desde HA, *icono de engranaje → Templates* lista todas tus plantillas con su **ID** (copiable) y sus **parámetros**, ordenadas en *Official* / *Custom* / *Drafts*.
 
+> Desde HA, el servicio **`peek_it_ha.save_template`** guarda una plantilla (`template_id` + `elements` JSON, `name` opcional) en la TV, donde se añade a la lista anterior y luego puede mostrarse con `notify` (`template_id` + `params`). `overwrite: false` se niega a reemplazar un id existente.
+
 ---
 
 ## 🚀 Uso
@@ -586,6 +588,7 @@ La app expone una API HTTP local (puerto `8081`). Si hay configurada una clave A
 | `/api/notify` | POST | Mostrar / cerrar una notificación |
 | `/api/tts` · `/api/tts/stop` | POST | Síntesis de voz |
 | `/api/templates/list` | GET | Lista de plantillas |
+| `/api/templates/save` | POST | Guardar una plantilla (servicio `save_template`) |
 
 **Respuesta de `/api/status`**:
 ```json

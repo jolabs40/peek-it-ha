@@ -27,7 +27,11 @@ from .const import (
 )
 from .coordinator import PeekItCoordinator
 from .http import async_get_json, async_post_json
-from .payload import build_notify_payload, build_tts_payload
+from .payload import (
+    build_notify_payload,
+    build_save_template_payload,
+    build_tts_payload,
+)
 
 PLATFORMS = ["binary_sensor", "notify", "button"]
 
@@ -121,6 +125,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             DOMAIN, "dismiss", async_dismiss,
             supports_response=SupportsResponse.OPTIONAL,
         )
+    if not hass.services.has_service(DOMAIN, "save_template"):
+        hass.services.async_register(
+            DOMAIN, "save_template", async_save_template,
+            supports_response=SupportsResponse.OPTIONAL,
+        )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
@@ -157,6 +166,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             hass.services.async_remove(DOMAIN, "tts")
             hass.services.async_remove(DOMAIN, "tts_stop")
             hass.services.async_remove(DOMAIN, "dismiss")
+            hass.services.async_remove(DOMAIN, "save_template")
     return unload_ok
 
 
@@ -263,6 +273,29 @@ def _parse_delivery(ok: bool, status: int | None, body: str) -> dict:
     return result
 
 
+def _parse_saved(ok: bool, status: int | None, body: str) -> dict:
+    """Interprète la réponse de ``/api/templates/save`` en ``{saved, reason,
+    http_status}``.
+
+    L'app renvoie ``{"status":"ok","saved":true,"id":…}`` ou
+    ``{…"saved":false,"reason":"invalid_id|empty_elements|exists|storage_error"}``
+    (HTTP 200 même en cas de refus, comme ``/api/notify``). Une réponse 2xx
+    sans champ ``saved`` (app ancienne) est considérée sauvegardée.
+    """
+    result: dict = {"saved": False, "reason": None, "http_status": status}
+    if not ok:
+        result["reason"] = "http_error" if status is not None else "unreachable"
+        return result
+    try:
+        data = json.loads(body) if body else {}
+    except (ValueError, TypeError):
+        data = {}
+    result["saved"] = bool(data.get("saved", True))
+    if data.get("reason") is not None:
+        result["reason"] = str(data["reason"])
+    return result
+
+
 async def _notify_one(
     hass: HomeAssistant, coord: PeekItCoordinator, call_data: dict
 ) -> dict:
@@ -325,6 +358,27 @@ async def _dismiss_one(
     return _parse_delivery(ok, status, body)
 
 
+async def _save_template_one(
+    hass: HomeAssistant, coord: PeekItCoordinator, call_data: dict
+) -> dict:
+    payload = build_save_template_payload(call_data)
+    ok, status, body = await async_post_json(
+        hass,
+        f"http://{coord.ip}:{coord.port}/api/templates/save",
+        payload,
+        headers=_common_headers(coord.api_key),
+        context=f"save_template {coord.device_name}",
+    )
+    result = _parse_saved(ok, status, body)
+    if not result["saved"]:
+        _LOGGER.warning(
+            "Peek-it: template '%s' non sauvegardé sur %s (reason=%s, HTTP %s)",
+            call_data.get("template_id"), coord.device_name,
+            result["reason"], status,
+        )
+    return result
+
+
 async def _tts_stop_one(hass: HomeAssistant, coord: PeekItCoordinator) -> None:
     await async_post_json(
         hass,
@@ -335,13 +389,36 @@ async def _tts_stop_one(hass: HomeAssistant, coord: PeekItCoordinator) -> None:
     )
 
 
-async def _dispatch(hass: HomeAssistant, call: ServiceCall, sender, context: str) -> dict:
-    """Fan-out concurrent + collecte du statut de livraison par TV.
+def _delivery_error(reason: str) -> dict:
+    """Forme d'erreur des services de livraison (notify/tts/dismiss)."""
+    return {
+        "delivered": False, "reason": reason,
+        "fallback": None, "http_status": None,
+    }
+
+
+def _save_error(reason: str) -> dict:
+    """Forme d'erreur du service save_template (pas de notion de livraison)."""
+    return {"saved": False, "reason": reason, "http_status": None}
+
+
+async def _dispatch(
+    hass: HomeAssistant,
+    call: ServiceCall,
+    sender,
+    context: str,
+    *,
+    error_result=_delivery_error,
+) -> dict:
+    """Fan-out concurrent + collecte du statut par TV.
 
     Le coût total est celui de la TV la plus lente (pas la somme). Les TV
     hors ligne sont écartées de l'envoi mais figurent dans le résultat
-    (``reason="offline"``). Renvoie ``{nom_tv: {delivered, reason, fallback,
-    http_status}}``, exploitable via ``response_variable``.
+    (``reason="offline"``). ``error_result(reason)`` fabrique la forme du
+    résultat pour les cas offline/exception (``delivered`` pour les services
+    de livraison, ``saved`` pour save_template). Renvoie
+    ``{nom_tv: {…, reason, http_status}}``, exploitable via
+    ``response_variable``.
     """
     call_data = dict(call.data)
     selected = _select_coordinators(hass, call_data.pop("target", None))
@@ -350,10 +427,7 @@ async def _dispatch(hass: HomeAssistant, call: ServiceCall, sender, context: str
     results: dict[str, dict] = {}
     for coord in selected:
         if coord not in online:
-            results[coord.device_name] = {
-                "delivered": False, "reason": "offline",
-                "fallback": None, "http_status": None,
-            }
+            results[coord.device_name] = error_result("offline")
 
     if online:
         sent = await asyncio.gather(
@@ -368,10 +442,7 @@ async def _dispatch(hass: HomeAssistant, call: ServiceCall, sender, context: str
                     "Peek-it: %s sur %s a levé une exception: %s",
                     context, coord.device_name, res,
                 )
-                results[coord.device_name] = {
-                    "delivered": False, "reason": "exception",
-                    "fallback": None, "http_status": None,
-                }
+                results[coord.device_name] = error_result("exception")
 
     return results
 
@@ -396,6 +467,16 @@ async def async_dismiss(call: ServiceCall) -> dict:
     """Ferme la notification au sommet (``action:CLOSE``) — toutes les TV ou
     ``target``. Renvoie le statut par TV."""
     return await _dispatch(call.hass, call, _dismiss_one, "dismiss")
+
+
+async def async_save_template(call: ServiceCall) -> dict:
+    """Sauvegarde un template (``id`` + ``elements``) sur la/les TV — toutes
+    ou ``target``. Renvoie ``{nom_tv: {saved, reason, http_status}}``,
+    exploitable via ``response_variable``."""
+    return await _dispatch(
+        call.hass, call, _save_template_one, "save_template",
+        error_result=_save_error,
+    )
 
 
 async def async_tts_stop(call: ServiceCall) -> None:

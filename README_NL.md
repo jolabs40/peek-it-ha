@@ -191,6 +191,8 @@ Per TV wordt om de 30 s slechts één `GET /api/status`-verzoek verstuurd; alle 
 
 > Vanuit HA toont *tandwielicoon → Templates* al uw templates met hun **ID** (kopieerbaar) en hun **parameters**, gesorteerd in *Official* / *Custom* / *Drafts*.
 
+> Vanuit HA slaat de service **`peek_it_ha.save_template`** een template op (`template_id` + JSON-`elements`, optionele `name`) op de TV, waar het bij de bovenstaande lijst komt en vervolgens kan worden weergegeven met `notify` (`template_id` + `params`). `overwrite: false` weigert een bestaande id te vervangen.
+
 ---
 
 ## 🚀 Gebruik
@@ -586,6 +588,7 @@ De app stelt een lokale HTTP-API beschikbaar (poort `8081`). Als een API-sleutel
 | `/api/notify` | POST | Een notificatie weergeven / sluiten |
 | `/api/tts` · `/api/tts/stop` | POST | Spraaksynthese |
 | `/api/templates/list` | GET | Lijst van templates |
+| `/api/templates/save` | POST | Een template opslaan (service `save_template`) |
 
 **Antwoord van `/api/status`**:
 ```json

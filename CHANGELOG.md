@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] — 2026-06-03
+
+### Added
+
+- **Service `save_template`** : persiste un template réutilisable
+  (`template_id` + `elements` JSON, `name` et `overwrite` optionnels) sur la/les
+  TV via un nouvel endpoint app `POST /api/templates/save`. Réutilise les
+  patterns existants — fan-out parallèle, `target`, skip des TV offline,
+  `supports_response` (retourne `{nom_tv: {saved, reason, http_status}}`). Les
+  éléments passent par `sanitize_element` (types Java forcés, comme le mode 2 de
+  `notify`). Affichage ultérieur du template sauvé : service `notify` existant
+  (`template_id` + `params`), inchangé.
+
+### Changed
+
+- `payload.py` : nouveau builder `build_save_template_payload`.
+- `_dispatch` paramétré par une fabrique `error_result` (forme `delivered` pour
+  notify/tts/dismiss, `saved` pour save_template) — zéro régression sur les
+  services existants.
+- `services.yaml` : schéma UI du service `save_template`.
+
+### Contrat app à implémenter
+
+- `POST /api/templates/save` — body `{id, name?, elements[], overwrite?, source}`,
+  réponse HTTP 200 `{"status":"ok","saved":true,"id":…}` ou
+  `{…"saved":false,"reason":"invalid_id|empty_elements|exists|storage_error"}`
+  (200 même en cas de refus, comme `/api/notify`). Côté HA déjà prêt.
+
 ## [1.5.0] — 2026-06-02
 
 ### Added

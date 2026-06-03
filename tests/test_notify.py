@@ -226,6 +226,63 @@ async def test_dismiss_passes_notification_id(
     assert posts and posts[-1][2]["notification_id"] == "abc-1"
 
 
+async def test_save_template_posts_and_reports_saved(
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    mock_config_entry,
+) -> None:
+    """save_template POSTs id+elements to /api/templates/save and surfaces saved."""
+    await _setup(hass, aioclient_mock, mock_config_entry)
+    aioclient_mock.clear_requests()
+    aioclient_mock.post(
+        "http://192.0.2.10:8081/api/templates/save",
+        status=200, text='{"status":"ok","saved":true,"id":"doorbell"}',
+    )
+
+    resp = await hass.services.async_call(
+        "peek_it_ha", "save_template",
+        {
+            "template_id": "doorbell",
+            "name": "Doorbell",
+            "elements": [{"type": "rect", "style": {"left": 5}}],
+        },
+        blocking=True, return_response=True,
+    )
+
+    posts = [c for c in aioclient_mock.mock_calls
+             if c[0].lower() == "post"
+             and str(c[1]).endswith("/api/templates/save")]
+    assert posts
+    payload = posts[-1][2]
+    assert payload["id"] == "doorbell"
+    assert payload["name"] == "Doorbell"
+    assert payload["overwrite"] is True
+    assert payload["elements"][0]["type"] == "rect"
+    assert resp["Living Room TV"]["saved"] is True
+
+
+async def test_save_template_reports_refusal(
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    mock_config_entry,
+) -> None:
+    """A logical refusal (HTTP 200, saved=false) is surfaced with its reason."""
+    await _setup(hass, aioclient_mock, mock_config_entry)
+    aioclient_mock.clear_requests()
+    aioclient_mock.post(
+        "http://192.0.2.10:8081/api/templates/save",
+        status=200, text='{"status":"error","saved":false,"reason":"invalid_id"}',
+    )
+
+    resp = await hass.services.async_call(
+        "peek_it_ha", "save_template",
+        {"template_id": "", "elements": []},
+        blocking=True, return_response=True,
+    )
+    assert resp["Living Room TV"]["saved"] is False
+    assert resp["Living Room TV"]["reason"] == "invalid_id"
+
+
 async def test_tts_default_lang_from_ha_language(
     hass: HomeAssistant,
     aioclient_mock: AiohttpClientMocker,

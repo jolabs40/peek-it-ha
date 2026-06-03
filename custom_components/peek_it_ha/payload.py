@@ -202,6 +202,27 @@ def _simple_elements(
     return elements
 
 
+def build_save_template_payload(data: dict[str, Any]) -> dict[str, Any]:
+    """Construit le payload ``/api/templates/save``.
+
+    ``data`` porte ``template_id`` (id de sauvegarde, requis), ``name``
+    (libellé affiché, optionnel), ``elements`` (liste, passée par
+    :func:`sanitize_element` pour forcer les types Java comme le mode 2 de
+    ``notify``) et ``overwrite`` (bool, défaut ``True``). Le ``target`` est
+    retiré en amont par ``_dispatch`` et n'arrive pas ici.
+    """
+    raw = data.get("elements") or []
+    payload: dict[str, Any] = {
+        "id": str(data.get("template_id", "")),
+        "elements": [sanitize_element(el) for el in raw],
+        "overwrite": bool(data.get("overwrite", True)),
+        "source": "HA",
+    }
+    if data.get("name"):
+        payload["name"] = str(data["name"])
+    return payload
+
+
 def build_tts_payload(
     data: dict[str, Any], *, default_lang: str = "en"
 ) -> dict[str, Any]:

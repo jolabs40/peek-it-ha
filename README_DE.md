@@ -191,6 +191,8 @@ Pro TV wird alle 30 s nur eine einzige Anfrage `GET /api/status` gesendet; alle 
 
 > Von HA aus listet *Zahnradsymbol → Templates* all Ihre Templates mit ihrer **ID** (kopierbar) und ihren **Parametern** auf, sortiert in *Official* / *Custom* / *Drafts*.
 
+> Von HA aus speichert der Dienst **`peek_it_ha.save_template`** ein Template (`template_id` + JSON-`elements`, optionaler `name`) auf dem TV, wo es zur obigen Liste hinzukommt und anschließend über `notify` (`template_id` + `params`) angezeigt werden kann. `overwrite: false` lehnt das Ersetzen einer vorhandenen id ab.
+
 ---
 
 ## 🚀 Verwendung
@@ -586,6 +588,7 @@ Die App stellt eine lokale HTTP-API bereit (Port `8081`). Wenn ein API-Schlüsse
 | `/api/notify` | POST | Eine Benachrichtigung anzeigen / schließen |
 | `/api/tts` · `/api/tts/stop` | POST | Sprachausgabe |
 | `/api/templates/list` | GET | Liste der Templates |
+| `/api/templates/save` | POST | Template speichern (Dienst `save_template`) |
 
 **Antwort von `/api/status`**:
 ```json

@@ -332,3 +332,48 @@ dismiss:
       required: false
       selector:
         text:
+
+save_template:
+  name: Save template
+  description: >-
+    Persists a reusable template (id + JSON elements) on Peek-it [TV] devices,
+    so it can later be displayed with the notify service (template_id + params).
+    By default it targets ALL configured TVs; use the Target field for specific
+    ones. Returns a per-TV save status (saved / reason / http_status) usable via
+    response_variable.
+  fields:
+    target:
+      name: Target device(s)
+      description: Limit the save to specific Peek-it [TV] device(s). Leave empty to save on ALL configured TVs (default).
+      required: false
+      selector:
+        device:
+          integration: peek_it_ha
+          multiple: true
+    template_id:
+      name: Template ID
+      description: Identifier the template is saved under. Reuse the same id to overwrite it. Use this value later as notify's template_id.
+      required: true
+      example: "doorbell_alert"
+      selector:
+        text:
+    name:
+      name: Display name
+      description: Optional human-readable label shown for the template in the app.
+      required: false
+      example: "Doorbell alert"
+      selector:
+        text:
+    elements:
+      name: Elements
+      description: Full JSON element list defining the template (copied from the Designer).
+      required: true
+      selector:
+        object:
+    overwrite:
+      name: Overwrite
+      description: "Overwrite an existing template with the same id. Default: true."
+      required: false
+      default: true
+      selector:
+        boolean:

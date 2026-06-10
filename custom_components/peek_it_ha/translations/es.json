@@ -7,7 +7,10 @@
           "ip_address": "Dirección IP",
           "port": "Puerto",
           "name": "Nombre",
-          "api_key": "Clave API (opcional)"
+          "pair_code": "Código de vinculación (6 dígitos)"
+        },
+        "data_description": {
+          "pair_code": "En la TV, abra Servicio > Vincular un dispositivo e introduzca el código mostrado."
         }
       },
       "zeroconf_confirm": {
@@ -22,13 +25,17 @@
         "description": "Se encontró un dispositivo Peek-it [TV] en {host}:{port}. Se requiere una clave API.",
         "data": {
           "name": "Nombre",
-          "api_key": "Clave API"
+          "pair_code": "Código de vinculación (6 dígitos)"
+        },
+        "data_description": {
+          "pair_code": "En la TV, abra Servicio > Vincular un dispositivo e introduzca el código mostrado."
         }
       }
     },
     "error": {
       "cannot_connect": "No se puede conectar al Android TV",
-      "auth_required": "Android TV conectado pero la clave API falta o es inválida"
+      "auth_required": "Android TV conectado pero la clave API falta o es inválida",
+      "pair_failed": "Error de vinculación: código no válido o caducado, o la ventana de vinculación no está abierta en la TV"
     },
     "abort": {
       "already_configured": "Este dispositivo ya está configurado",
@@ -51,7 +58,10 @@
           "ip_address": "Dirección IP",
           "port": "Puerto",
           "name": "Nombre",
-          "api_key": "Clave API (opcional)"
+          "pair_code": "Código de vinculación (6 dígitos)"
+        },
+        "data_description": {
+          "pair_code": "En la TV, abra Servicio > Vincular un dispositivo e introduzca el código mostrado."
         }
       },
       "templates": {
@@ -65,7 +75,8 @@
     },
     "error": {
       "cannot_connect": "No se puede conectar al TV",
-      "auth_required": "TV conectado pero la clave API falta o es inválida"
+      "auth_required": "TV conectado pero la clave API falta o es inválida",
+      "pair_failed": "Error de vinculación: código no válido o caducado, o la ventana de vinculación no está abierta en la TV"
     }
   },
   "entity": {

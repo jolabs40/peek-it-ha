@@ -7,7 +7,10 @@
           "ip_address": "IP-Adresse",
           "port": "Port",
           "name": "Name",
-          "api_key": "API-Schlüssel (optional)"
+          "pair_code": "Kopplungscode (6-stellig)"
+        },
+        "data_description": {
+          "pair_code": "Öffnen Sie auf dem TV Dienst > Gerät koppeln und geben Sie den angezeigten Code ein."
         }
       },
       "zeroconf_confirm": {
@@ -22,13 +25,17 @@
         "description": "Ein Peek-it [TV] Gerät wurde unter {host}:{port} gefunden. Ein API-Schlüssel ist erforderlich.",
         "data": {
           "name": "Name",
-          "api_key": "API-Schlüssel"
+          "pair_code": "Kopplungscode (6-stellig)"
+        },
+        "data_description": {
+          "pair_code": "Öffnen Sie auf dem TV Dienst > Gerät koppeln und geben Sie den angezeigten Code ein."
         }
       }
     },
     "error": {
       "cannot_connect": "Verbindung zum Android TV nicht möglich",
-      "auth_required": "Android TV verbunden, aber API-Schlüssel fehlt oder ist ungültig"
+      "auth_required": "Android TV verbunden, aber API-Schlüssel fehlt oder ist ungültig",
+      "pair_failed": "Kopplung fehlgeschlagen: ungültiger oder abgelaufener Code, oder das Kopplungsfenster ist auf dem TV nicht geöffnet"
     },
     "abort": {
       "already_configured": "Dieses Gerät ist bereits konfiguriert",
@@ -51,7 +58,10 @@
           "ip_address": "IP-Adresse",
           "port": "Port",
           "name": "Name",
-          "api_key": "API-Schlüssel (optional)"
+          "pair_code": "Kopplungscode (6-stellig)"
+        },
+        "data_description": {
+          "pair_code": "Öffnen Sie auf dem TV Dienst > Gerät koppeln und geben Sie den angezeigten Code ein."
         }
       },
       "templates": {
@@ -65,7 +75,8 @@
     },
     "error": {
       "cannot_connect": "Verbindung zum TV nicht möglich",
-      "auth_required": "TV verbunden, aber API-Schlüssel fehlt oder ist ungültig"
+      "auth_required": "TV verbunden, aber API-Schlüssel fehlt oder ist ungültig",
+      "pair_failed": "Kopplung fehlgeschlagen: ungültiger oder abgelaufener Code, oder das Kopplungsfenster ist auf dem TV nicht geöffnet"
     }
   },
   "entity": {

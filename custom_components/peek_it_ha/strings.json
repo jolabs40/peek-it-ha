@@ -7,7 +7,10 @@
           "ip_address": "IP Address",
           "port": "Port",
           "name": "Name",
-          "api_key": "API Key (optional)"
+          "pair_code": "Pairing code (6 digits)"
+        },
+        "data_description": {
+          "pair_code": "On the TV, open Service > Pair a device, then enter the code shown."
         }
       },
       "zeroconf_confirm": {
@@ -22,13 +25,17 @@
         "description": "A Peek-it [TV] device was found at {host}:{port}. An API key is required.",
         "data": {
           "name": "Name",
-          "api_key": "API Key"
+          "pair_code": "Pairing code (6 digits)"
+        },
+        "data_description": {
+          "pair_code": "On the TV, open Service > Pair a device, then enter the code shown."
         }
       }
     },
     "error": {
       "cannot_connect": "Cannot connect to the Android TV",
-      "auth_required": "Android TV connected but API key is missing or invalid"
+      "auth_required": "Android TV connected but API key is missing or invalid",
+      "pair_failed": "Pairing failed: invalid or expired code, or the pairing window is not open on the TV"
     },
     "abort": {
       "already_configured": "This device is already configured",
@@ -51,7 +58,10 @@
           "ip_address": "IP Address",
           "port": "Port",
           "name": "Name",
-          "api_key": "API Key (optional)"
+          "pair_code": "Pairing code (6 digits)"
+        },
+        "data_description": {
+          "pair_code": "On the TV, open Service > Pair a device, then enter the code shown."
         }
       },
       "templates": {
@@ -65,7 +75,8 @@
     },
     "error": {
       "cannot_connect": "Cannot connect to the TV",
-      "auth_required": "TV connected but API key is missing or invalid"
+      "auth_required": "TV connected but API key is missing or invalid",
+      "pair_failed": "Pairing failed: invalid or expired code, or the pairing window is not open on the TV"
     }
   },
   "entity": {

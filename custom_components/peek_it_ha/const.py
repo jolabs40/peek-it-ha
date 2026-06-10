@@ -7,6 +7,9 @@ CONF_NAME = "name"
 CONF_PORT = "port"
 CONF_API_KEY = "api_key"
 CONF_WEBHOOK_SECRET = "webhook_secret"
+# Champ transitoire du config flow : code 6 chiffres affiché sur la TV, échangé
+# contre la vraie clé API via POST /api/pair (non persisté).
+CONF_PAIR_CODE = "pair_code"
 
 # Fixed identifier for receiving logs (must match the Android app code)
 WEBHOOK_ID = "peek_it_debug"

@@ -7,7 +7,10 @@
           "ip_address": "Adresse IP",
           "port": "Port",
           "name": "Nom",
-          "api_key": "Clé API (optionnel)"
+          "pair_code": "Code d'appairage (6 chiffres)"
+        },
+        "data_description": {
+          "pair_code": "Sur la TV, ouvrez Service > Appairer un appareil, puis saisissez le code affiché."
         }
       },
       "zeroconf_confirm": {
@@ -22,13 +25,17 @@
         "description": "Un appareil Peek-it [TV] a été détecté à {host}:{port}. Une clé API est nécessaire.",
         "data": {
           "name": "Nom",
-          "api_key": "Clé API"
+          "pair_code": "Code d'appairage (6 chiffres)"
+        },
+        "data_description": {
+          "pair_code": "Sur la TV, ouvrez Service > Appairer un appareil, puis saisissez le code affiché."
         }
       }
     },
     "error": {
       "cannot_connect": "Impossible de se connecter à l'Android TV",
-      "auth_required": "Android TV connectée mais clé API manquante ou invalide"
+      "auth_required": "Android TV connectée mais clé API manquante ou invalide",
+      "pair_failed": "Échec de l'appairage : code invalide ou expiré, ou la fenêtre d'appairage n'est pas ouverte sur la TV"
     },
     "abort": {
       "already_configured": "Cet appareil est déjà configuré",
@@ -51,7 +58,10 @@
           "ip_address": "Adresse IP",
           "port": "Port",
           "name": "Nom",
-          "api_key": "Clé API (optionnel)"
+          "pair_code": "Code d'appairage (6 chiffres)"
+        },
+        "data_description": {
+          "pair_code": "Sur la TV, ouvrez Service > Appairer un appareil, puis saisissez le code affiché."
         }
       },
       "templates": {
@@ -65,7 +75,8 @@
     },
     "error": {
       "cannot_connect": "Impossible de se connecter à la TV",
-      "auth_required": "TV connectée mais clé API manquante ou invalide"
+      "auth_required": "TV connectée mais clé API manquante ou invalide",
+      "pair_failed": "Échec de l'appairage : code invalide ou expiré, ou la fenêtre d'appairage n'est pas ouverte sur la TV"
     }
   },
   "entity": {

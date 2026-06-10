@@ -7,7 +7,10 @@
           "ip_address": "IP-adres",
           "port": "Poort",
           "name": "Naam",
-          "api_key": "API-sleutel (optioneel)"
+          "pair_code": "Koppelcode (6 cijfers)"
+        },
+        "data_description": {
+          "pair_code": "Open op de TV Service > Apparaat koppelen en voer de getoonde code in."
         }
       },
       "zeroconf_confirm": {
@@ -22,13 +25,17 @@
         "description": "Een Peek-it [TV] apparaat is gevonden op {host}:{port}. Een API-sleutel is vereist.",
         "data": {
           "name": "Naam",
-          "api_key": "API-sleutel"
+          "pair_code": "Koppelcode (6 cijfers)"
+        },
+        "data_description": {
+          "pair_code": "Open op de TV Service > Apparaat koppelen en voer de getoonde code in."
         }
       }
     },
     "error": {
       "cannot_connect": "Kan geen verbinding maken met de Android TV",
-      "auth_required": "Android TV verbonden maar API-sleutel ontbreekt of is ongeldig"
+      "auth_required": "Android TV verbonden maar API-sleutel ontbreekt of is ongeldig",
+      "pair_failed": "Koppelen mislukt: ongeldige of verlopen code, of het koppelvenster is niet geopend op de TV"
     },
     "abort": {
       "already_configured": "Dit apparaat is al geconfigureerd",
@@ -51,7 +58,10 @@
           "ip_address": "IP-adres",
           "port": "Poort",
           "name": "Naam",
-          "api_key": "API-sleutel (optioneel)"
+          "pair_code": "Koppelcode (6 cijfers)"
+        },
+        "data_description": {
+          "pair_code": "Open op de TV Service > Apparaat koppelen en voer de getoonde code in."
         }
       },
       "templates": {
@@ -65,7 +75,8 @@
     },
     "error": {
       "cannot_connect": "Kan geen verbinding maken met de TV",
-      "auth_required": "TV verbonden maar API-sleutel ontbreekt of is ongeldig"
+      "auth_required": "TV verbonden maar API-sleutel ontbreekt of is ongeldig",
+      "pair_failed": "Koppelen mislukt: ongeldige of verlopen code, of het koppelvenster is niet geopend op de TV"
     }
   },
   "entity": {

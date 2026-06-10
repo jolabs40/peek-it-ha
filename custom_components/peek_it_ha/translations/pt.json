@@ -7,7 +7,10 @@
           "ip_address": "Endereço IP",
           "port": "Porta",
           "name": "Nome",
-          "api_key": "Chave API (opcional)"
+          "pair_code": "Código de emparelhamento (6 dígitos)"
+        },
+        "data_description": {
+          "pair_code": "Na TV, abra Serviço > Emparelhar um dispositivo e introduza o código mostrado."
         }
       },
       "zeroconf_confirm": {
@@ -22,13 +25,17 @@
         "description": "Um dispositivo Peek-it [TV] foi encontrado em {host}:{port}. É necessária uma chave API.",
         "data": {
           "name": "Nome",
-          "api_key": "Chave API"
+          "pair_code": "Código de emparelhamento (6 dígitos)"
+        },
+        "data_description": {
+          "pair_code": "Na TV, abra Serviço > Emparelhar um dispositivo e introduza o código mostrado."
         }
       }
     },
     "error": {
       "cannot_connect": "Não é possível ligar ao Android TV",
-      "auth_required": "Android TV ligado mas a chave API está em falta ou é inválida"
+      "auth_required": "Android TV ligado mas a chave API está em falta ou é inválida",
+      "pair_failed": "Falha no emparelhamento: código inválido ou expirado, ou a janela de emparelhamento não está aberta na TV"
     },
     "abort": {
       "already_configured": "Este dispositivo já está configurado",
@@ -51,7 +58,10 @@
           "ip_address": "Endereço IP",
           "port": "Porta",
           "name": "Nome",
-          "api_key": "Chave API (opcional)"
+          "pair_code": "Código de emparelhamento (6 dígitos)"
+        },
+        "data_description": {
+          "pair_code": "Na TV, abra Serviço > Emparelhar um dispositivo e introduza o código mostrado."
         }
       },
       "templates": {
@@ -65,7 +75,8 @@
     },
     "error": {
       "cannot_connect": "Não é possível ligar ao TV",
-      "auth_required": "TV ligado mas a chave API está em falta ou é inválida"
+      "auth_required": "TV ligado mas a chave API está em falta ou é inválida",
+      "pair_failed": "Falha no emparelhamento: código inválido ou expirado, ou a janela de emparelhamento não está aberta na TV"
     }
   },
   "entity": {

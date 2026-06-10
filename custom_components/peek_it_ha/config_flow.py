@@ -1,4 +1,5 @@
 """Config flow for Peek-it [HA]."""
+import json
 import logging
 import secrets
 
@@ -10,6 +11,7 @@ from .const import (
     CONF_API_KEY,
     CONF_IP_ADDRESS,
     CONF_NAME,
+    CONF_PAIR_CODE,
     CONF_PORT,
     CONF_WEBHOOK_SECRET,
     DEFAULT_PORT,
@@ -25,6 +27,27 @@ _LOGGER = logging.getLogger(__name__)
 def _generate_webhook_secret() -> str:
     """Generate a new URL-safe webhook secret."""
     return secrets.token_urlsafe(32)
+
+
+async def _pair_with_code(
+    hass: HomeAssistant, ip: str, port: int, code: str
+) -> str | None:
+    """Échange un code 6 chiffres (affiché sur la TV) contre la clé API.
+
+    Appelle ``POST /api/pair`` (endpoint public). Renvoie la clé en cas de succès,
+    ``None`` si le code est invalide/expiré ou la fenêtre d'appairage fermée.
+    """
+    url = f"http://{ip}:{port}/api/pair"
+    ok, _status, body = await async_post_json(
+        hass, url, {"code": code}, timeout=STATUS_TIMEOUT_SECONDS, context="pairing"
+    )
+    if not ok or not body:
+        return None
+    try:
+        data = json.loads(body)
+    except (ValueError, TypeError):
+        return None
+    return data.get("api_key") or None
 
 
 class PeekItConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -94,37 +117,43 @@ class PeekItConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Confirmation with API key required."""
         errors = {}
         if user_input is not None:
-            api_key = user_input.get(CONF_API_KEY, "")
-            result = await _test_connection(
-                self.hass, self._discovered_ip, self._discovered_port, api_key
-            )
-            if result == "ok":
-                name = user_input.get(CONF_NAME, self._discovered_name)
-                webhook_secret = _generate_webhook_secret()
-                data = {
-                    CONF_IP_ADDRESS: self._discovered_ip,
-                    CONF_PORT: self._discovered_port,
-                    CONF_NAME: name,
-                    CONF_API_KEY: api_key,
-                    CONF_WEBHOOK_SECRET: webhook_secret,
-                }
-                await _send_welcome_notification(
-                    self.hass,
-                    self._discovered_ip,
-                    self._discovered_port,
-                    api_key,
-                    name,
-                    webhook_secret,
-                )
-                return self.async_create_entry(title=name, data=data)
+            code = user_input.get(CONF_PAIR_CODE, "").strip()
+            api_key = await _pair_with_code(
+                self.hass, self._discovered_ip, self._discovered_port, code
+            ) or ""
+            if not api_key:
+                errors["base"] = "pair_failed"
             else:
-                errors["base"] = "auth_required"
+                result = await _test_connection(
+                    self.hass, self._discovered_ip, self._discovered_port, api_key
+                )
+                if result == "ok":
+                    name = user_input.get(CONF_NAME, self._discovered_name)
+                    webhook_secret = _generate_webhook_secret()
+                    data = {
+                        CONF_IP_ADDRESS: self._discovered_ip,
+                        CONF_PORT: self._discovered_port,
+                        CONF_NAME: name,
+                        CONF_API_KEY: api_key,
+                        CONF_WEBHOOK_SECRET: webhook_secret,
+                    }
+                    await _send_welcome_notification(
+                        self.hass,
+                        self._discovered_ip,
+                        self._discovered_port,
+                        api_key,
+                        name,
+                        webhook_secret,
+                    )
+                    return self.async_create_entry(title=name, data=data)
+                else:
+                    errors["base"] = "auth_required"
 
         return self.async_show_form(
             step_id="zeroconf_confirm_auth",
             data_schema=vol.Schema({
                 vol.Optional(CONF_NAME, default=self._discovered_name): str,
-                vol.Required(CONF_API_KEY): str,
+                vol.Required(CONF_PAIR_CODE): str,
             }),
             description_placeholders={
                 "host": self._discovered_ip,
@@ -140,20 +169,32 @@ class PeekItConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             ip = user_input[CONF_IP_ADDRESS]
             port = user_input.get(CONF_PORT, DEFAULT_PORT)
-            api_key = user_input.get(CONF_API_KEY, "")
-            result = await _test_connection(self.hass, ip, port, api_key)
-            if result == "ok":
-                name = user_input.get(CONF_NAME, "Android TV")
-                webhook_secret = _generate_webhook_secret()
-                data = {**user_input, CONF_WEBHOOK_SECRET: webhook_secret}
-                await _send_welcome_notification(
-                    self.hass, ip, port, api_key, name, webhook_secret
-                )
-                return self.async_create_entry(title=name, data=data)
-            elif result == "auth_required":
-                errors["base"] = "auth_required"
-            else:
-                errors["base"] = "cannot_connect"
+            code = user_input.get(CONF_PAIR_CODE, "").strip()
+            api_key = ""
+            if code:
+                api_key = await _pair_with_code(self.hass, ip, port, code) or ""
+                if not api_key:
+                    errors["base"] = "pair_failed"
+            if not errors:
+                result = await _test_connection(self.hass, ip, port, api_key)
+                if result == "ok":
+                    name = user_input.get(CONF_NAME, "Android TV")
+                    webhook_secret = _generate_webhook_secret()
+                    data = {
+                        CONF_IP_ADDRESS: ip,
+                        CONF_PORT: port,
+                        CONF_NAME: name,
+                        CONF_API_KEY: api_key,
+                        CONF_WEBHOOK_SECRET: webhook_secret,
+                    }
+                    await _send_welcome_notification(
+                        self.hass, ip, port, api_key, name, webhook_secret
+                    )
+                    return self.async_create_entry(title=name, data=data)
+                elif result == "auth_required":
+                    errors["base"] = "auth_required"
+                else:
+                    errors["base"] = "cannot_connect"
 
         return self.async_show_form(
             step_id="user",
@@ -161,7 +202,7 @@ class PeekItConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Required(CONF_IP_ADDRESS): str,
                 vol.Optional(CONF_PORT, default=DEFAULT_PORT): int,
                 vol.Optional(CONF_NAME, default="Living Room TV"): str,
-                vol.Optional(CONF_API_KEY, default=""): str,
+                vol.Optional(CONF_PAIR_CODE, default=""): str,
             }),
             errors=errors,
         )
@@ -194,26 +235,41 @@ class PeekItOptionsFlow(config_entries.OptionsFlow):
         if user_input is not None:
             ip = user_input[CONF_IP_ADDRESS]
             port = user_input.get(CONF_PORT, DEFAULT_PORT)
-            api_key = user_input.get(CONF_API_KEY, "")
-            result = await _test_connection(self.hass, ip, port, api_key)
-            if result == "ok":
-                name = user_input.get(CONF_NAME, "Living Room TV")
-                webhook_secret = self._entry.data.get(
-                    CONF_WEBHOOK_SECRET
-                ) or _generate_webhook_secret()
-                new_data = {**user_input, CONF_WEBHOOK_SECRET: webhook_secret}
-                await _send_welcome_notification(
-                    self.hass, ip, port, api_key, name, webhook_secret
-                )
-                self.hass.config_entries.async_update_entry(
-                    self._entry, data=new_data
-                )
-                await self.hass.config_entries.async_reload(self._entry.entry_id)
-                return self.async_create_entry(data={})
-            elif result == "auth_required":
-                errors["base"] = "auth_required"
-            else:
-                errors["base"] = "cannot_connect"
+            code = user_input.get(CONF_PAIR_CODE, "").strip()
+            # Par défaut on conserve la clé existante ; un nouveau code la remplace.
+            api_key = self._entry.data.get(CONF_API_KEY, "")
+            if code:
+                new_key = await _pair_with_code(self.hass, ip, port, code)
+                if new_key:
+                    api_key = new_key
+                else:
+                    errors["base"] = "pair_failed"
+            if not errors:
+                result = await _test_connection(self.hass, ip, port, api_key)
+                if result == "ok":
+                    name = user_input.get(CONF_NAME, "Living Room TV")
+                    webhook_secret = self._entry.data.get(
+                        CONF_WEBHOOK_SECRET
+                    ) or _generate_webhook_secret()
+                    new_data = {
+                        CONF_IP_ADDRESS: ip,
+                        CONF_PORT: port,
+                        CONF_NAME: name,
+                        CONF_API_KEY: api_key,
+                        CONF_WEBHOOK_SECRET: webhook_secret,
+                    }
+                    await _send_welcome_notification(
+                        self.hass, ip, port, api_key, name, webhook_secret
+                    )
+                    self.hass.config_entries.async_update_entry(
+                        self._entry, data=new_data
+                    )
+                    await self.hass.config_entries.async_reload(self._entry.entry_id)
+                    return self.async_create_entry(data={})
+                elif result == "auth_required":
+                    errors["base"] = "auth_required"
+                else:
+                    errors["base"] = "cannot_connect"
 
         current = self._entry.data
         return self.async_show_form(
@@ -222,7 +278,7 @@ class PeekItOptionsFlow(config_entries.OptionsFlow):
                 vol.Required(CONF_IP_ADDRESS, default=current.get(CONF_IP_ADDRESS, "")): str,
                 vol.Optional(CONF_PORT, default=current.get(CONF_PORT, DEFAULT_PORT)): int,
                 vol.Optional(CONF_NAME, default=current.get(CONF_NAME, "Living Room TV")): str,
-                vol.Optional(CONF_API_KEY, default=current.get(CONF_API_KEY, "")): str,
+                vol.Optional(CONF_PAIR_CODE, default=""): str,
             }),
             errors=errors,
         )

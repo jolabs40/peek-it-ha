@@ -15,6 +15,7 @@ from custom_components.peek_it_ha.const import (
     CONF_API_KEY,
     CONF_IP_ADDRESS,
     CONF_NAME,
+    CONF_PAIR_CODE,
     CONF_PORT,
     CONF_WEBHOOK_SECRET,
     DEFAULT_PORT,
@@ -61,7 +62,7 @@ async def test_user_flow_success(
             CONF_IP_ADDRESS: "192.0.2.10",
             CONF_PORT: 8081,
             CONF_NAME: "Living Room TV",
-            CONF_API_KEY: "",
+            CONF_PAIR_CODE: "",
         },
     )
     assert result2["type"] == data_entry_flow.FlowResultType.CREATE_ENTRY
@@ -88,7 +89,7 @@ async def test_user_flow_cannot_connect(
             CONF_IP_ADDRESS: "192.0.2.10",
             CONF_PORT: 8081,
             CONF_NAME: "Living Room TV",
-            CONF_API_KEY: "",
+            CONF_PAIR_CODE: "",
         },
     )
     assert result2["type"] == data_entry_flow.FlowResultType.FORM
@@ -113,7 +114,7 @@ async def test_user_flow_auth_required(
             CONF_IP_ADDRESS: "192.0.2.10",
             CONF_PORT: 8081,
             CONF_NAME: "Living Room TV",
-            CONF_API_KEY: "",
+            CONF_PAIR_CODE: "",
         },
     )
     assert result2["type"] == data_entry_flow.FlowResultType.FORM
@@ -139,7 +140,7 @@ async def test_user_flow_auth_required_via_payload(
             CONF_IP_ADDRESS: "192.0.2.10",
             CONF_PORT: 8081,
             CONF_NAME: "Living Room TV",
-            CONF_API_KEY: "wrong-key",
+            CONF_PAIR_CODE: "",
         },
     )
     assert result2["type"] == data_entry_flow.FlowResultType.FORM
@@ -191,8 +192,13 @@ async def test_zeroconf_auth_required_branch(
     assert result["type"] == data_entry_flow.FlowResultType.FORM
     assert result["step_id"] == "zeroconf_confirm_auth"
 
-    # Now retry with a working key — the test mock is reset to 200.
+    # Now retry with a pairing code : /api/pair returns the real key, then
+    # /api/status with that key validates and the entry is created.
     aioclient_mock.clear_requests()
+    aioclient_mock.post(
+        "http://192.0.2.10:8081/api/pair",
+        json={"status": "ok", "api_key": "good-key"},
+    )
     aioclient_mock.get(
         "http://192.0.2.10:8081/api/status",
         json={"api_key_required": True, "api_key_valid": True},
@@ -203,7 +209,7 @@ async def test_zeroconf_auth_required_branch(
 
     result2 = await hass.config_entries.flow.async_configure(
         result["flow_id"],
-        user_input={CONF_NAME: "Living Room TV", CONF_API_KEY: "good-key"},
+        user_input={CONF_NAME: "Living Room TV", CONF_PAIR_CODE: "123456"},
     )
     assert result2["type"] == data_entry_flow.FlowResultType.CREATE_ENTRY
     assert result2["data"][CONF_API_KEY] == "good-key"
@@ -246,7 +252,7 @@ async def test_welcome_notification_includes_secret(
             CONF_IP_ADDRESS: "192.0.2.10",
             CONF_PORT: 8081,
             CONF_NAME: "Living Room TV",
-            CONF_API_KEY: "",
+            CONF_PAIR_CODE: "",
         },
     )
     assert result2["type"] == data_entry_flow.FlowResultType.CREATE_ENTRY
